@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RISE – Editar Projeto</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+<style>
+/* ── RISE BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--off:#f5f4f2;--off2:#edecea;--black:#0a0a0a;--ink:#1a1a1a;
+  --muted:#6b7280;--muted2:#9e9e9e;--border:#e2e0dd;--border2:#ccc9c5;
+  --red:#d92b22;--red-light:#fdf1f0;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--nav:64px;--drawer:300px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--off);color:var(--ink);font-family:var(--fb);overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--off2)}::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:600;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.logo-box{background:var(--black);color:var(--white);font-family:var(--fh);font-weight:800;font-size:14px;padding:5px 11px;letter-spacing:.01em}
+.logo-box .s{color:var(--red)}
+.logo-text{font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);font-family:var(--fh);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--red)}
+.uname{font-size:12px;color:rgba(255,255,255,.4)}
+.role-badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:rgba(217,43,34,.2);color:var(--red)}
+
+/* HAMBURGER */
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none;border-radius:6px;transition:background .2s;width:40px;height:40px}
+.hamburger:hover{background:rgba(255,255,255,.08)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--white);border-radius:1px;transition:transform .3s ease,opacity .3s ease}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:700;pointer-events:none;transition:background .3s ease}
+.drawer-overlay.open{background:rgba(0,0,0,.25);pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:var(--drawer);background:var(--white);border-right:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:var(--nav);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:var(--black)}
+.drawer-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:6px;border-radius:6px;font-size:16px;transition:.2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+.drawer-close:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.drawer-body{flex:1;padding:8px 0}
+.drawer-section-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:20px 20px 6px}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);font-size:13px;font-weight:400;text-decoration:none;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.drawer-item:hover{background:var(--off);color:var(--ink);border-left-color:var(--border2)}
+.drawer-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500}
+.drawer-item .di-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.7}
+.drawer-item.active .di-icon{opacity:1}
+.drawer-divider{height:1px;background:var(--border);margin:8px 20px}
+.drawer-footer{padding:20px;border-top:1px solid var(--border);flex-shrink:0}
+.drawer-footer-text{font-size:10px;color:var(--muted2)}
+
+/* HERO */
+.hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 52px;margin-top:var(--nav);background:var(--off);border-bottom:1px solid var(--border);border-top:3px solid var(--red)}
+.hero-title{font-family:var(--fh);font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--black)}
+.hero-title .dot{color:var(--red)}
+.hero-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:300}
+
+/* PAGE CONTENT */
+.page-content{padding:28px 52px;flex:1}
+#projeto-container, .sections-view{max-width:100%!important;width:100%!important}
+.page-content .header-actions{ margin-top:0; justify-content:flex-end; }
+.page-content{ background:#fff; }
+
+
+/* LOADING OVERLAY */
+.loading-overlay{position:fixed;inset:0;background:rgba(220,218,215,.75);backdrop-filter:blur(3px);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.open{opacity:1;pointer-events:all}
+.loading-logo-wrap{position:relative;width:180px;height:68px}
+.loading-logo-base{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;filter:brightness(0) opacity(.12)}
+.loading-logo-fill{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;clip-path:inset(0 100% 0 0);animation:fillRight 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fillRight{0%{clip-path:inset(0 100% 0 0)}60%{clip-path:inset(0 0% 0 0)}85%{clip-path:inset(0 0% 0 0);opacity:1}100%{clip-path:inset(0 0% 0 0);opacity:0}}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:10px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted2);background:var(--white)}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:13px;color:var(--black)}
+.foot-logo .s{color:var(--red)}
+
+@media(max-width:900px){
+  .hero,.page-content{padding-left:24px;padding-right:24px}
+  footer{padding:12px 24px}
+  .uname,.role-badge{display:none}
+}
+
+/* ── Override mínimo para o conteúdo original ── */
+/* header-actions já tem o seu espaçamento — só garantir margem do topo */
+.page-content .header-actions{ margin-top:0; }
+/* Secções accordion do view mode — fundo branco */
+.page-content .secao{ background:#fff; }
+.page-content .secao-btn{ background:#f3f4f6; }
+/* sections-view precisa de display:flex em coluna */
+#sections-view{ flex-direction:column; }
+</style>
+
+<!-- CSS EDITAR PROJETO (editarProjeto_css.html) — inalterado -->
+<?!= include('editarProjeto_css') ?>
+</head>
+<body>
+
+<? var WU = webappUrl; ?>
+<?
+  var userName  = dados.sessao ? dados.sessao.nome : 'Utilizador';
+  var userRole  = dados.sessao ? dados.sessao.role : 'utilizador';
+  var _nameParts = userName.trim().split(' ');
+  var userInit  = _nameParts[0].charAt(0).toUpperCase() + (_nameParts.length > 1 ? _nameParts[_nameParts.length-1].charAt(0).toUpperCase() : '');
+  var projetoIdParam = dados.projetoId || '';
+?>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span>Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span>Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span>Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span>Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span>Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span>RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span>Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span>Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span>Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)"><?= userName ?></div>
+    <div class="drawer-footer-text" style="margin-top:3px"><?= userRole ?> · RISE</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    <div class="logo" onclick="navTo('<?= WU ?>')">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span class="logo-text">Portal Interno</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="uname"><?= userName ?></span>
+    <span class="role-badge"><?= userRole ?></span>
+    <div class="avatar"><?= userInit ?></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-title" id="hero-titulo">Projeto<span class="dot">.</span></div>
+  </div>
+</div>
+
+<!-- CONTEÚDO ORIGINAL — inalterado -->
+<div class="page-content">
+
+  <!-- Card de erro -->
+  <div id="cardErro" class="alert-card alert-danger" style="display:none;">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-content">
+      <strong>Erro</strong>
+      <p id="mensagemErro"></p>
+    </div>
+    <button class="alert-close" onclick="fecharCardErro()">×</button>
+  </div>
+
+  <!-- Header de acções (original) -->
+  <div class="header-actions">
+    <div class="btn-group-actions">
+      <button class="btn btn-back" onclick="voltarListagem()">← Voltar</button>
+      <button class="btn btn-danger-outline" id="btn-eliminar-proj" style="display:none;" onclick="abrirModalEliminar()">🗑️ Eliminar</button>
+      <button class="btn btn-pdf" id="btn-pdf" style="display:none;" onclick="exportarPDF()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        Exportar PDF
+      </button>
+      <button class="btn btn-edit" id="btn-editar" style="display:none;" onclick="ativarModoEdicao()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editar
+      </button>
+      <button class="btn btn-save" id="btn-guardar" style="display:none;" onclick="guardarAlteracoes()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+        Guardar Alterações
+      </button>
+      <button class="btn btn-cancel" id="btn-cancelar" style="display:none;" onclick="cancelarEdicao()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Estado loading -->
+<div id="loading-state" class="loading-wrap">
+  <div class="spinner-border spinner-border-sm text-dark" role="status"></div>
+  <span>A carregar projeto...</span>
+</div>
+
+  <!-- Container do projeto -->
+  <div id="projeto-container" style="display:none;">
+
+    <!-- View mode: accordion bonito -->
+    <div id="sections-view" class="sections-view" style="display:none;"></div>
+
+    <!-- Edit mode: secções accordion originais -->
+    <div id="edit-sections">
+
+      <button class="secao-btn" onclick="toggleSecao('sec-geral')">📋 Informações Gerais</button>
+      <div class="secao" id="sec-geral" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-alimentacao')">🍽️ Alimentação</button>
+      <div class="secao" id="sec-alimentacao" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-alojamento')">🏨 Alojamento</button>
+      <div class="secao" id="sec-alojamento" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-freelancers')">👤 Freelancers</button>
+      <div class="secao" id="sec-freelancers" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-subcontratados')">🏢 Subcontratados</button>
+      <div class="secao" id="sec-subcontratados" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-viaturas')">🚐 Viaturas</button>
+      <div class="secao" id="sec-viaturas" data-loaded="0"></div>
+
+      <button class="secao-btn" onclick="toggleSecao('sec-equipamento')">🎛️ Equipamento (Flex)</button>
+      <div class="secao" id="sec-equipamento" data-loaded="0"></div>
+
+    </div>
+  </div>
+
+  <!-- Modal Eliminar -->
+  <div id="modal-eliminar" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:9999;">
+    <div style="background:#fff;border-radius:16px;padding:32px 28px 24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);">
+      <div style="width:52px;height:52px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px;">🗑️</div>
+      <div style="font-size:17px;font-weight:700;color:#111827;text-align:center;margin-bottom:8px;">Eliminar Projeto</div>
+      <div style="font-size:14px;color:#6b7280;text-align:center;margin-bottom:24px;line-height:1.5;">Tens a certeza? Esta ação não pode ser desfeita.</div>
+      <div style="display:flex;gap:10px;">
+        <button onclick="fecharModalEliminar()" style="flex:1;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;background:#f3f4f6;color:#374151;border:1px solid #d1d5db;cursor:pointer;">Cancelar</button>
+        <button id="btn-confirmar-eliminar" onclick="confirmarEliminar()" style="flex:1;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;background:#dc2626;color:#fff;border:none;cursor:pointer;">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page-content -->
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-base"></div>
+    <div class="loading-logo-fill"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+  <div>© 2026 RISE · a Europalco company</div>
+  <div>Departamento de Planeamento · <?= dados.dataHoje ?></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS SECÇÕES (secoes.html) — inalterado -->
+<?!= include('secoes') ?>
+
+<script>
+var PODE_EDITAR   = false;
+var PODE_ELIMINAR = false;
+var PODE_PDF      = false;
+</script>
+
+<!-- JS EDITAR PROJETO (editarProjeto_js.html) — inalterado -->
+<?!= include('editarProjeto_js') ?>
+
+<script>
+/* NAV / DRAWER — Rise */
+function navTo(url){ document.getElementById('loadingOverlay').classList.add('open'); setTimeout(function(){ try{window.top.location.href=url;}catch(e){window.location.href=url;} },50); }
+var drawerOpen=false;
+function toggleDrawer(){ drawerOpen?closeDrawer():openDrawer(); }
+function openDrawer(){ drawerOpen=true; document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('hamburger').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer(){ drawerOpen=false; document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('hamburger').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&drawerOpen) closeDrawer(); });
+
+/* Override voltarListagem para usar navTo */
+function voltarListagem(){ navTo('<?= WU ?>?page=verProjetos'); }
+
+/* Expor parametrosRota para o JS original */
+window.parametrosRota = { id: '<?= projetoIdParam ?>' };
+
+/* Atualizar hero e titulo quando o projeto carrega */
+var _origRenderizarVistaBonita = window.renderizarVistaBonita;
+window.renderizarVistaBonita = function(dados) {
+  if (dados && dados.projeto) {
+    var id = dados.projeto.ID_Projeto || '';
+    var nome = dados.projeto.Nome_do_Evento || '';
+    document.getElementById('hero-titulo').innerHTML = id + (nome ? ' · ' + nome : '') + '<span class="dot">.</span>';
+  }
+  if (_origRenderizarVistaBonita) _origRenderizarVistaBonita(dados);
+};
+
+/* INIT */
+window.addEventListener('load', function(){
+  if (typeof window.initPagina === 'function') window.initPagina();
+});
+</script>
+</body>
+</html>

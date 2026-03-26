@@ -1,0 +1,3201 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISE – Restaurantes</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --white: #ffffff;
+      --off: #f5f4f2;
+      --off2: #edecea;
+      --black: #0a0a0a;
+      --ink: #1a1a1a;
+      --muted: #6b6b6b;
+      --muted2: #9e9e9e;
+      --border: #e2e0dd;
+      --border2: #ccc9c5;
+      --red: #d92b22;
+      --red-light: #fdf1f0;
+      --gold: #e0a500;
+      --gold-light: #fffdf0;
+      --green: #1a7a3f;
+      --green-light: #edfaf2;
+      --fh: 'Syne', sans-serif;
+      --fb: 'DM Sans', sans-serif;
+      --nav: 64px;
+      --drawer: 300px;
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--fb);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--off2)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 4px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #555
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 600;
+      height: var(--nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: var(--black);
+      border-bottom: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      cursor: pointer
+    }
+
+    .logo-box {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--fh);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 5px 11px;
+      letter-spacing: .01em
+    }
+
+    .logo-box .s {
+      color: var(--red)
+    }
+
+    .logo-text {
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, .35);
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--red)
+    }
+
+    .uname {
+      font-size: 12px;
+      color: rgba(255, 255, 255, .4);
+      font-weight: 400;
+      font-family: var(--fb)
+    }
+
+    .role-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-family: var(--fb)
+    }
+
+    .rb-admin{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-gestor{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-utilizador{background:rgba(217,43,34,.2);color:var(--red)}
+
+    /* ── HAMBURGER ── */
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      transition: background .2s;
+      width: 40px;
+      height: 40px
+    }
+
+    .hamburger:hover {
+      background: rgba(255, 255, 255, .08)
+    }
+
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--white);
+      border-radius: 1px;
+      transition: transform .3s ease, opacity .3s ease
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(6.5px) rotate(45deg)
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-6.5px) rotate(-45deg)
+    }
+
+    /* ── DRAWER ── */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      z-index: 700;
+      pointer-events: none;
+      transition: background .3s ease
+    }
+
+    .drawer-overlay.open {
+      background: rgba(0, 0, 0, .25);
+      pointer-events: all
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--drawer);
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      z-index: 800;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform .32s cubic-bezier(.4, 0, .2, 1);
+      overflow-y: auto;
+      overflow-x: hidden
+    }
+
+    .drawer.open {
+      transform: translateX(0)
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: var(--nav);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      flex-shrink: 0;
+      background: var(--black)
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, .4);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 16px;
+      line-height: 1;
+      transition: .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      font-family: var(--fb)
+    }
+
+    .drawer-close:hover {
+      background: rgba(255, 255, 255, .08);
+      color: var(--white)
+    }
+
+    .drawer-body {
+      flex: 1;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column
+    }
+
+    .drawer-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 20px 20px 6px;
+      font-family: var(--fb)
+    }
+
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 400;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      border-left: 2px solid transparent;
+      font-family: var(--fb)
+    }
+
+    .drawer-item:hover {
+      background: var(--off);
+      color: var(--ink);
+      border-left-color: var(--border2)
+    }
+
+    .drawer-item.active {
+      background: var(--red-light);
+      color: var(--red);
+      border-left-color: var(--red);
+      font-weight: 500
+    }
+
+    .drawer-item .di-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+      opacity: .7
+    }
+
+    .drawer-item.active .di-icon {
+      opacity: 1
+    }
+
+    .drawer-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 20px
+    }
+
+    .drawer-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .drawer-footer-text {
+      font-size: 10px;
+      color: var(--muted2);
+      letter-spacing: .04em;
+      font-family: var(--fb)
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      margin-top: var(--nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 20px 52px;
+      background: var(--off);
+      border-bottom: 1px solid var(--border);
+      border-top: 3px solid var(--red)
+    }
+
+    .ph-title {
+      font-family: var(--fh);
+      font-size: clamp(20px, 2.2vw, 28px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: var(--black)
+    }
+
+    .ph-title .dot {
+      color: var(--red)
+    }
+
+    .ph-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 300;
+      font-family: var(--fb)
+    }
+
+    .ph-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--fb);
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: .2s;
+      letter-spacing: .02em;
+      white-space: nowrap
+    }
+
+    .btn-red {
+      background: var(--red);
+      color: #fff
+    }
+
+    .btn-red:hover {
+      background: #c0241c
+    }
+
+    .btn-red:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border)
+    }
+
+    .btn-ghost:hover {
+      color: var(--ink);
+      background: var(--white);
+      border-color: var(--border2)
+    }
+
+    .btn-dark {
+      background: var(--red);
+      color: #fff
+    }
+
+    .btn-dark:hover {
+      background: #c0241c
+    }
+
+    .btn-eliminar {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--fb);
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      transition: .2s
+    }
+
+    .btn-eliminar:hover {
+      color: #c0241c;
+      border-color: rgba(192, 36, 28, .35);
+      background: var(--red-light)
+    }
+
+    .btn-save {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--fb);
+      cursor: pointer;
+      border: none;
+      background: var(--red);
+      color: #fff;
+      transition: .2s
+    }
+
+    .btn-save:hover {
+      background: #c0241c
+    }
+
+    .btn-save:disabled {
+      opacity: .5;
+      cursor: not-allowed
+    }
+
+    .btn-cancel-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--fb);
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      transition: .2s
+    }
+
+    .btn-cancel-edit:hover {
+      color: var(--ink);
+      background: var(--white);
+      border-color: var(--border2)
+    }
+
+    /* ── FILTERS ── */
+    .filters {
+      padding: 14px 52px;
+      display: flex;
+      gap: 10px;
+      background: var(--white);
+      flex-wrap: wrap;
+      align-items: center;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .btn-filter {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--fb);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: .2s;
+      min-height: 36px;
+      white-space: nowrap
+    }
+
+    .btn-filter:hover {
+      border-color: var(--border2);
+      background: var(--off)
+    }
+
+    .btn-filter.active {
+      border-color: var(--border2);
+      background: var(--off);
+      font-weight: 600
+    }
+
+    .btn-clear-filters {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 7px 12px;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted2);
+      font-family: var(--fb);
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: .2s;
+      min-height: 36px;
+      white-space: nowrap
+    }
+
+    .btn-clear-filters:hover {
+      color: var(--red);
+      border-color: rgba(217, 43, 34, .2);
+      background: var(--red-light)
+    }
+
+    .search-wrap {
+      margin-left: auto;
+      position: relative
+    }
+
+    .search-wrap input {
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: var(--fb);
+      font-size: 12px;
+      padding: 7px 14px 7px 34px;
+      border-radius: 7px;
+      width: 220px;
+      outline: none;
+      transition: .2s
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .search-wrap input::placeholder {
+      color: var(--muted2)
+    }
+
+    .search-wrap::before {
+      content: '🔍';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      opacity: .5
+    }
+
+    /* ── MODAL FILTROS ── */
+    .filter-modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .35);
+      z-index: 950;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s
+    }
+
+    .filter-modal-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .filter-modal {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 420px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .15);
+      transform: translateY(10px) scale(.98);
+      transition: transform .22s;
+      overflow: hidden
+    }
+
+    .filter-modal-overlay.open .filter-modal {
+      transform: translateY(0) scale(1)
+    }
+
+    .filter-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .filter-modal-title {
+      font-family: var(--fh);
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--black);
+      letter-spacing: -.02em
+    }
+
+    .filter-modal-close {
+      width: 30px;
+      height: 30px;
+      border-radius: 7px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .2s;
+      flex-shrink: 0
+    }
+
+    .filter-modal-close:hover {
+      background: var(--off2);
+      color: var(--ink)
+    }
+
+    .filter-modal-body {
+      padding: 8px 0;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .filter-modal-footer {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+      background: var(--off);
+      border-radius: 0 0 14px 14px;
+      flex-shrink: 0
+    }
+
+    .fg {
+      border-bottom: 1px solid var(--border)
+    }
+
+    .fg:last-child {
+      border-bottom: none
+    }
+
+    .fg-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+      gap: 12px
+    }
+
+    .fg-header:hover {
+      background: var(--off)
+    }
+
+    .fg-header-left {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .fg-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      font-family: var(--fb);
+      transition: color .15s
+    }
+
+    .fg-header:hover .fg-label {
+      color: var(--ink)
+    }
+
+    .fg-active-count {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--red);
+      color: #fff;
+      font-family: var(--fb);
+      display: none
+    }
+
+    .fg-active-count.visible {
+      display: block
+    }
+
+    .fg-arrow {
+      font-size: 11px;
+      color: var(--muted2);
+      transition: transform .25s ease;
+      flex-shrink: 0
+    }
+
+    .fg.open .fg-arrow {
+      transform: rotate(180deg)
+    }
+
+    .fg-body {
+      display: none;
+      padding: 4px 24px 16px
+    }
+
+    .fg.open .fg-body {
+      display: block
+    }
+
+    .filter-options {
+      display: flex;
+      flex-direction: column;
+      gap: 6px
+    }
+
+    .filter-option {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: .15s;
+      user-select: none
+    }
+
+    .filter-option:hover {
+      background: var(--off);
+      border-color: var(--border2)
+    }
+
+    .filter-option.selected {
+      border-color: transparent
+    }
+
+    .filter-option.selected.fo-lisboa {
+      background: rgba(59, 130, 246, .07);
+      border-color: rgba(59, 130, 246, .2)
+    }
+
+    .filter-option.selected.fo-algarve {
+      background: rgba(224, 165, 0, .07);
+      border-color: rgba(224, 165, 0, .2)
+    }
+
+    .filter-option.selected.fo-albufeira .fo-checkbox {
+      background: #e05c2a;
+      border-color: #e05c2a
+    }
+
+    .filter-option.selected.fo-alcoutim .fo-checkbox {
+      background: #a05c2a;
+      border-color: #a05c2a
+    }
+
+    .filter-option.selected.fo-aljezur .fo-checkbox {
+      background: #2a7a5c;
+      border-color: #2a7a5c
+    }
+
+    .filter-option.selected.fo-castro-marim .fo-checkbox {
+      background: #7a2a5c;
+      border-color: #7a2a5c
+    }
+
+    .filter-option.selected.fo-faro .fo-checkbox {
+      background: #e0a500;
+      border-color: #e0a500
+    }
+
+    .filter-option.selected.fo-lagoa .fo-checkbox {
+      background: #2a5ca0;
+      border-color: #2a5ca0
+    }
+
+    .filter-option.selected.fo-lagos .fo-checkbox {
+      background: #1a7a3f;
+      border-color: #1a7a3f
+    }
+
+    .filter-option.selected.fo-loule .fo-checkbox {
+      background: #c0392b;
+      border-color: #c0392b
+    }
+
+    .filter-option.selected.fo-monchique .fo-checkbox {
+      background: #5c7a2a;
+      border-color: #5c7a2a
+    }
+
+    .filter-option.selected.fo-olhao .fo-checkbox {
+      background: #2a7a9a;
+      border-color: #2a7a9a
+    }
+
+    .filter-option.selected.fo-portimao .fo-checkbox {
+      background: #8e44ad;
+      border-color: #8e44ad
+    }
+
+    .filter-option.selected.fo-sbras .fo-checkbox {
+      background: #d35400;
+      border-color: #d35400
+    }
+
+    .filter-option.selected.fo-silves .fo-checkbox {
+      background: #c0a030;
+      border-color: #c0a030
+    }
+
+    .filter-option.selected.fo-tavira .fo-checkbox {
+      background: #2980b9;
+      border-color: #2980b9
+    }
+
+    .filter-option.selected.fo-viladobispo .fo-checkbox {
+      background: #7f8c8d;
+      border-color: #7f8c8d
+    }
+
+    .filter-option.selected.fo-vrsa .fo-checkbox {
+      background: #16a085;
+      border-color: #16a085
+    }
+
+    .filter-option.selected.fo-algarve .fo-checkbox {
+      background: var(--gold);
+      border-color: var(--gold)
+    }
+
+    .fo-label {
+      flex: 1;
+      font-family: var(--fb);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink)
+    }
+
+    .fo-count {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted2);
+      background: var(--off2);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-family: var(--fb)
+    }
+
+    .fo-checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border2);
+      background: var(--white);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .15s;
+      font-size: 10px;
+      color: #fff
+    }
+
+    .filter-option.selected.fo-lisboa .fo-checkbox {
+      background: #3b82f6;
+      border-color: #3b82f6
+    }
+
+    .filter-option.selected.fo-algarve .fo-checkbox {
+      background: var(--gold);
+      border-color: var(--gold)
+    }
+
+    .filter-option.selected .fo-checkmark {
+      display: block;
+      font-weight: 800
+    }
+
+    .algarve-grupo {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: 10px
+    }
+
+    .algarve-grupo-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      cursor: pointer;
+      user-select: none;
+      transition: background .15s;
+      background: var(--white)
+    }
+
+    .algarve-grupo-header:hover {
+      background: var(--off)
+    }
+
+    .algarve-grupo-header.selected {
+      background: rgba(224, 165, 0, .07);
+      border-bottom: 1px solid rgba(224, 165, 0, .2)
+    }
+
+    .algarve-grupo-arrow {
+      font-size: 10px;
+      color: var(--muted2);
+      transition: transform .25s ease;
+      margin-left: auto
+    }
+
+    .algarve-grupo.open .algarve-grupo-arrow {
+      transform: rotate(180deg)
+    }
+
+    .algarve-concelhos {
+      display: none;
+      border-top: 1px solid var(--border);
+      background: var(--off);
+      padding: 6px 8px;
+      flex-direction: column;
+      gap: 4px
+    }
+
+    .algarve-grupo.open .algarve-concelhos {
+      display: flex
+    }
+
+    .algarve-grupo.open .algarve-concelhos {
+      display: flex
+    }
+
+    .algarve-concelhos .filter-option {
+      background: var(--white);
+      margin: 0
+    }
+
+    .algarve-concelhos-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 4px 6px 2px;
+      font-family: var(--fb)
+    }
+
+    .fo-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    /* ── GRELHA ── */
+    .content-wrap {
+      padding: 0 52px 32px;
+      flex: 1
+    }
+
+    .rest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+      padding-top: 24px
+    }
+
+    .rest-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      transition: .2s;
+      display: flex;
+      flex-direction: column;
+      cursor: pointer
+    }
+
+    .rest-card:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 0, 0, .07)
+    }
+
+    .rest-foto {
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      background: var(--off);
+      display: block
+    }
+
+    .rest-foto-placeholder {
+      width: 100%;
+      height: 140px;
+      background: var(--off);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .rest-body {
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      flex: 1
+    }
+
+    .rest-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px
+    }
+
+    .rest-name {
+      font-family: var(--fh);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--black);
+      margin-bottom: 2px;
+      letter-spacing: -.01em
+    }
+
+    .rest-zona-badge {
+      font-size: 9px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-family: var(--fb);
+      display: inline-block
+    }
+
+    .zona-lisboa {
+      color: #3b82f6;
+      background: rgba(59, 130, 246, .1)
+    }
+
+    .zona-porto {
+      color: #6366f1;
+      background: rgba(99, 102, 241, .1)
+    }
+
+    .zona-algarve {
+      color: var(--gold);
+      background: rgba(224, 165, 0, .08)
+    }
+
+    .zona-setubal {
+      color: #10b981;
+      background: rgba(16, 185, 129, .1)
+    }
+
+    .zona-outro {
+      color: var(--muted);
+      background: var(--off2)
+    }
+
+    .rest-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--gold);
+      white-space: nowrap;
+      flex-shrink: 0
+    }
+
+    .rest-info {
+      font-size: 12px;
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      font-family: var(--fb)
+    }
+
+    .rest-info-row {
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .rest-meta {
+      font-size: 10px;
+      color: var(--muted2);
+      border-top: 1px solid var(--border);
+      padding-top: 8px;
+      margin-top: 4px;
+      font-family: var(--fb)
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--muted2);
+      grid-column: 1/-1
+    }
+
+    .empty-state .icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: .4
+    }
+
+    .empty-state p {
+      font-size: 13px;
+      line-height: 1.6
+    }
+
+    /* ── MODAL DETALHE ── */
+    .detail-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .45);
+      z-index: 960;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s
+    }
+
+    .detail-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .detail-modal {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .18);
+      transform: translateY(16px) scale(.98);
+      transition: transform .25s;
+      overflow: hidden
+    }
+
+    .detail-overlay.open .detail-modal {
+      transform: translateY(0) scale(1)
+    }
+
+    .detail-header {
+      padding: 14px 28px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .detail-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px
+    }
+
+    .detail-close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .2s;
+      flex-shrink: 0
+    }
+
+    .detail-close-btn:hover {
+      background: var(--off2);
+      color: var(--ink)
+    }
+
+    .detail-body {
+      padding: 0 28px 24px;
+      overflow-y: auto;
+      flex: 1
+    }
+
+    .detail-section {
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px
+    }
+
+    .detail-field-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 6px;
+      font-family: var(--fb)
+    }
+
+    .detail-field-value {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--ink);
+      font-family: var(--fb);
+      line-height: 1.6
+    }
+
+    .detail-field-value.empty {
+      color: var(--muted2);
+      font-style: italic
+    }
+
+    .detail-field-value a {
+      color: var(--red);
+      text-decoration: none
+    }
+
+    .detail-field-value a:hover {
+      text-decoration: underline
+    }
+
+    .detail-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px
+    }
+
+    .detail-fields.single {
+      grid-template-columns: 1fr
+    }
+
+    .detail-footer {
+      padding: 16px 28px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      background: var(--white);
+      flex-shrink: 0
+    }
+
+    /* ── CAMPOS EDITÁVEIS ── */
+    .fv {
+      display: block
+    }
+
+    .fe {
+      display: none
+    }
+
+    .edit-input,
+    .edit-select {
+      width: 100%;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: var(--fb);
+      font-size: 13px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      outline: none;
+      transition: .2s
+    }
+
+    .edit-input:focus,
+    .edit-select:focus {
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .edit-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b6b'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-size: 8px;
+      padding-right: 30px;
+      cursor: pointer
+    }
+
+    .edit-feedback {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--fb)
+    }
+
+    .edit-feedback.ok {
+      color: var(--green)
+    }
+
+    .edit-feedback.err {
+      color: var(--red)
+    }
+
+    /* zona badge no header do detalhe */
+    .rest-detail-zona {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-family: var(--fb);
+      display: inline-flex;
+      align-items: center;
+      border: 1.5px solid transparent
+    }
+
+    .rdz-lisboa {
+      color: #3b82f6;
+      background: rgba(59, 130, 246, .1);
+      border-color: rgba(59, 130, 246, .25)
+    }
+
+    .rdz-porto {
+      color: #6366f1;
+      background: rgba(99, 102, 241, .1);
+      border-color: rgba(99, 102, 241, .25)
+    }
+
+    .rdz-algarve {
+      color: var(--gold);
+      background: rgba(224, 165, 0, .08);
+      border-color: rgba(224, 165, 0, .25)
+    }
+
+    .rdz-setubal {
+      color: #10b981;
+      background: rgba(16, 185, 129, .1);
+      border-color: rgba(16, 185, 129, .25)
+    }
+
+    .rdz-outro {
+      color: var(--muted);
+      background: var(--off2);
+      border-color: var(--border2)
+    }
+
+    .zona-albufeira {
+      color: #e05c2a;
+      background: rgba(224, 92, 42, .1)
+    }
+
+    .zona-alcoutim {
+      color: #a05c2a;
+      background: rgba(160, 92, 42, .1)
+    }
+
+    .zona-aljezur {
+      color: #2a7a5c;
+      background: rgba(42, 122, 92, .1)
+    }
+
+    .zona-castro-marim {
+      color: #7a2a5c;
+      background: rgba(122, 42, 92, .1)
+    }
+
+    .zona-faro {
+      color: #e0a500;
+      background: rgba(224, 165, 0, .1)
+    }
+
+    .zona-lagoa {
+      color: #2a5ca0;
+      background: rgba(42, 92, 160, .1)
+    }
+
+    .zona-lagos {
+      color: #1a7a3f;
+      background: rgba(26, 122, 63, .1)
+    }
+
+    .zona-loule {
+      color: #c0392b;
+      background: rgba(192, 57, 43, .1)
+    }
+
+    .zona-monchique {
+      color: #5c7a2a;
+      background: rgba(92, 122, 42, .1)
+    }
+
+    .zona-olhao {
+      color: #2a7a9a;
+      background: rgba(42, 122, 154, .1)
+    }
+
+    .zona-portimao {
+      color: #8e44ad;
+      background: rgba(142, 68, 173, .1)
+    }
+
+    .zona-sbras {
+      color: #d35400;
+      background: rgba(211, 84, 0, .1)
+    }
+
+    .zona-silves {
+      color: #c0a030;
+      background: rgba(192, 160, 48, .1)
+    }
+
+    .zona-tavira {
+      color: #2980b9;
+      background: rgba(41, 128, 185, .1)
+    }
+
+    .zona-viladobispo {
+      color: #7f8c8d;
+      background: rgba(127, 140, 141, .1)
+    }
+
+    .zona-vrsa {
+      color: #16a085;
+      background: rgba(22, 160, 133, .1)
+    }
+
+    .rdz-albufeira {
+      color: #e05c2a;
+      background: rgba(224, 92, 42, .08);
+      border-color: rgba(224, 92, 42, .25)
+    }
+
+    .rdz-alcoutim {
+      color: #a05c2a;
+      background: rgba(160, 92, 42, .08);
+      border-color: rgba(160, 92, 42, .25)
+    }
+
+    .rdz-aljezur {
+      color: #2a7a5c;
+      background: rgba(42, 122, 92, .08);
+      border-color: rgba(42, 122, 92, .25)
+    }
+
+    .rdz-castro-marim {
+      color: #7a2a5c;
+      background: rgba(122, 42, 92, .08);
+      border-color: rgba(122, 42, 92, .25)
+    }
+
+    .rdz-faro {
+      color: #e0a500;
+      background: rgba(224, 165, 0, .08);
+      border-color: rgba(224, 165, 0, .25)
+    }
+
+    .rdz-lagoa {
+      color: #2a5ca0;
+      background: rgba(42, 92, 160, .08);
+      border-color: rgba(42, 92, 160, .25)
+    }
+
+    .rdz-lagos {
+      color: #1a7a3f;
+      background: rgba(26, 122, 63, .08);
+      border-color: rgba(26, 122, 63, .25)
+    }
+
+    .rdz-loule {
+      color: #c0392b;
+      background: rgba(192, 57, 43, .08);
+      border-color: rgba(192, 57, 43, .25)
+    }
+
+    .rdz-monchique {
+      color: #5c7a2a;
+      background: rgba(92, 122, 42, .08);
+      border-color: rgba(92, 122, 42, .25)
+    }
+
+    .rdz-olhao {
+      color: #2a7a9a;
+      background: rgba(42, 122, 154, .08);
+      border-color: rgba(42, 122, 154, .25)
+    }
+
+    .rdz-portimao {
+      color: #8e44ad;
+      background: rgba(142, 68, 173, .08);
+      border-color: rgba(142, 68, 173, .25)
+    }
+
+    .rdz-sbras {
+      color: #d35400;
+      background: rgba(211, 84, 0, .08);
+      border-color: rgba(211, 84, 0, .25)
+    }
+
+    .rdz-silves {
+      color: #c0a030;
+      background: rgba(192, 160, 48, .08);
+      border-color: rgba(192, 160, 48, .25)
+    }
+
+    .rdz-tavira {
+      color: #2980b9;
+      background: rgba(41, 128, 185, .08);
+      border-color: rgba(41, 128, 185, .25)
+    }
+
+    .rdz-viladobispo {
+      color: #7f8c8d;
+      background: rgba(127, 140, 141, .08);
+      border-color: rgba(127, 140, 141, .25)
+    }
+
+    .rdz-vrsa {
+      color: #16a085;
+      background: rgba(22, 160, 133, .08);
+      border-color: rgba(22, 160, 133, .25)
+    }
+
+    /* stars */
+    .stars-row {
+      display: flex;
+      gap: 3px
+    }
+
+    .star-btn {
+      background: none;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+      color: var(--border2);
+      transition: .15s;
+      padding: 0
+    }
+
+    .star-btn.on {
+      color: var(--gold)
+    }
+
+    /* ── CONFIRM ELIMINAR ── */
+    .confirm-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 990;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s
+    }
+
+    .confirm-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .confirm-modal {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 360px;
+      padding: 28px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+      transform: translateY(8px);
+      transition: transform .2s
+    }
+
+    .confirm-overlay.open .confirm-modal {
+      transform: translateY(0)
+    }
+
+    .confirm-icon {
+      font-size: 28px;
+      margin-bottom: 12px
+    }
+
+    .confirm-title {
+      font-family: var(--fh);
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--black);
+      letter-spacing: -.02em;
+      margin-bottom: 8px
+    }
+
+    .confirm-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.5;
+      margin-bottom: 24px;
+      font-family: var(--fb)
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end
+    }
+
+    /* ── MODAL CRIAR ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .4);
+      z-index: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .modal {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .15);
+      transform: translateY(12px);
+      transition: transform .25s
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0)
+    }
+
+    .modal-title {
+      font-family: var(--fh);
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--black);
+      letter-spacing: -.02em
+    }
+
+    .form-group {
+      margin-bottom: 14px
+    }
+
+    .form-label {
+      display: block;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 6px;
+      font-family: var(--fb)
+    }
+
+    .form-label .req {
+      color: var(--red)
+    }
+
+    .form-input,
+    .form-select {
+      width: 100%;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: var(--fb);
+      font-size: 13px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      outline: none;
+      transition: .2s
+    }
+
+    .form-input:focus,
+    .form-select:focus {
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px
+    }
+
+    .form-hint {
+      font-size: 10px;
+      color: var(--muted2);
+      margin-top: 3px
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 24px
+    }
+
+    .btn-cancel {
+      padding: 9px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: var(--fb);
+      transition: .2s
+    }
+
+    .btn-cancel:hover {
+      color: var(--ink);
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .stars-row-create {
+      display: flex;
+      gap: 4px;
+      margin-top: 4px
+    }
+
+    .star-c {
+      background: none;
+      border: none;
+      font-size: 22px;
+      cursor: pointer;
+      color: var(--border2);
+      transition: .15s;
+      padding: 0
+    }
+
+    .star-c.on {
+      color: var(--gold)
+    }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      z-index: 999;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: .3s;
+      pointer-events: none;
+      font-family: var(--fb)
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1
+    }
+
+    .toast.ok {
+      background: var(--green);
+      color: #fff
+    }
+
+    .toast.err {
+      background: var(--red);
+      color: #fff
+    }
+
+    /* ── LOADING ── */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(220, 218, 215, .75);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s
+    }
+
+    .loading-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .loading-logo-wrap {
+      position: relative;
+      width: 180px;
+      height: 68px
+    }
+
+    .loading-logo-base {
+      position: absolute;
+      inset: 0;
+      background: url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;
+      filter: brightness(0) opacity(.12)
+    }
+
+    .loading-logo-fill {
+      position: absolute;
+      inset: 0;
+      background: url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;
+      clip-path: inset(0 100% 0 0);
+      animation: fillRight 1.6s cubic-bezier(.4, 0, .2, 1) infinite
+    }
+
+    @keyframes fillRight {
+      0% {
+        clip-path: inset(0 100% 0 0)
+      }
+
+      60% {
+        clip-path: inset(0 0% 0 0)
+      }
+
+      85% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 1
+      }
+
+      100% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 0
+      }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 10px 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted2);
+      background: var(--white);
+      font-family: var(--fb)
+    }
+
+    .foot-logo {
+      font-family: var(--fh);
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--black)
+    }
+
+    .foot-logo .s {
+      color: var(--red)
+    }
+
+    @media(max-width:900px) {
+
+      .uname,
+      .role-badge {
+        display: none
+      }
+
+      .page-header,
+      .filters,
+      .content-wrap {
+        padding-left: 24px;
+        padding-right: 24px
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      .search-wrap {
+        margin-left: 0;
+        width: 100%
+      }
+
+      .search-wrap input {
+        width: 100%
+      }
+
+      footer {
+        padding: 12px 24px
+      }
+
+      .detail-fields {
+        grid-template-columns: 1fr
+      }
+
+      .detail-header,
+      .detail-body,
+      .detail-footer {
+        padding-left: 20px;
+        padding-right: 20px
+      }
+
+      .form-row {
+        grid-template-columns: 1fr
+      }
+    }
+
+    /* ── CUSTOM SELECT ZONA ── */
+    .csel-wrap {
+      position: relative;
+      width: 100%
+    }
+
+    .csel-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      width: 100%;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      font-family: var(--fb);
+      font-size: 13px;
+      padding: 9px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: .2s;
+      user-select: none;
+      min-height: 40px
+    }
+
+    .csel-trigger:hover {
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .csel-trigger.open {
+      border-color: var(--border2);
+      background: var(--white)
+    }
+
+    .csel-trigger .csel-placeholder {
+      color: var(--muted2)
+    }
+
+    .csel-trigger .csel-value {
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .csel-arrow {
+      font-size: 10px;
+      color: var(--muted2);
+      transition: transform .2s;
+      flex-shrink: 0
+    }
+
+    .csel-trigger.open .csel-arrow {
+      transform: rotate(180deg)
+    }
+
+    .csel-dropdown {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      right: 0;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, .12);
+      z-index: 9999;
+      overflow: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-6px);
+      transition: opacity .18s, transform .18s
+    }
+
+    .csel-dropdown.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: translateY(0)
+    }
+
+    .csel-scroll {
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 4px
+    }
+
+    .csel-scroll::-webkit-scrollbar {
+      width: 5px
+    }
+
+    .csel-scroll::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    .csel-scroll::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px
+    }
+
+    .csel-group-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 10px 10px 4px;
+      font-family: var(--fb)
+    }
+
+    .csel-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: .12s;
+      font-family: var(--fb);
+      font-size: 13px;
+      color: var(--ink)
+    }
+
+    .csel-opt:hover {
+      background: var(--off)
+    }
+
+    .csel-opt.selected {
+      background: var(--red-light);
+      color: var(--red);
+      font-weight: 600
+    }
+
+    .csel-opt .csel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .csel-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 6px
+    }
+  </style>
+</head>
+
+<body>
+
+  <? var WU = webappUrl; ?>
+  <?
+  var userRole  = dados.sessao ? dados.sessao.role  : 'utilizador';
+  var userName  = dados.sessao ? dados.sessao.nome  : 'Utilizador';
+  var _parts = userName.trim().split(' ');
+  var userInit  = _parts[0].charAt(0).toUpperCase() + (_parts.length > 1 ? _parts[_parts.length-1].charAt(0).toUpperCase() : '');
+  var podeCriar  = true;
+var podeEditar = (userRole === 'admin' || userRole === 'gestor');
+  var podeVerSheet = (userRole === 'admin');
+  var podeEliminar = (userRole === 'admin');
+?>
+
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-box">R<span class="s">/</span>SE</div>
+        <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    </div>
+    <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span class="di-label">Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span class="di-label">Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span class="di-label">Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span class="di-label">Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span class="di-label">Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span class="di-label">RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span class="di-label">Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span class="di-label">Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span class="di-label">Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+    <div class="drawer-footer">
+      <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)">
+        <?= userName ?>
+      </div>
+      <div class="drawer-footer-text" style="margin-top:3px">
+        <?= userRole ?> · RISE
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-left">
+      <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+      <div class="logo" onclick="navTo('<?= WU ?>')">
+        <div class="logo-box">R<span class="s">/</span>SE</div>
+        <span class="logo-text">Portal Interno</span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="uname"><?= userName ?></span>
+      <span class="role-badge rb-<?= userRole ?>"><?= userRole ?></span>
+      <div class="avatar">
+        <?= userInit ?>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div class="ph-left">
+      <div class="ph-title">Restaurantes<span class="dot">.</span></div>
+      <div class="ph-sub">Restaurantes recomendados nos locais habituais de trabalho</div>
+    </div>
+    <div class="ph-actions">
+      <? if (podeCriar) { ?>
+      <button class="btn btn-red" onclick="abrirModal()">🍽️ Sugerir Restaurante</button>
+      <? } ?>
+      <? if (podeVerSheet) { ?>
+      <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/<?= CONFIG.RESTAURANTES_SHEET_ID ?>"
+        target="_blank">📊 Ver Sheet</a>
+      <? } ?>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="filters">
+    <button class="btn-filter" id="btnFiltrar" onclick="abrirFiltrosModal()">
+    <span>⚙️</span><span id="btnFiltrarLabel">Filtrar</span>
+  </button>
+    <button class="btn-clear-filters" id="btnRemoverFiltros" onclick="removerFiltros()" style="display:none">
+    <span>✕</span> Remover filtros
+  </button>
+    <div class="search-wrap">
+      <input type="text" id="searchInput" placeholder="Pesquisar…" oninput="renderFiltrado()">
+    </div>
+  </div>
+
+  <!-- MODAL FILTROS -->
+  <div class="filter-modal-overlay" id="filterModalOverlay">
+    <div class="filter-modal">
+      <div class="filter-modal-header">
+        <div class="filter-modal-title">⚙️ Filtrar restaurantes</div>
+        <button class="filter-modal-close" onclick="fecharFiltrosModal()">✕</button>
+      </div>
+      <div class="filter-modal-body">
+        <div class="fg open" id="fg-zona">
+          <div class="fg-header" onclick="toggleFg('fg-zona')">
+            <div class="fg-header-left">
+              <span class="fg-label">Região</span><span class="fg-active-count" id="fgcount-zona">0</span>
+            </div>
+            <span class="fg-arrow">▼</span>
+          </div>
+          <div class="fg-body">
+            <div class="filter-options">
+              <div class="filter-option fo-lisboa" data-val="Lisboa" onclick="toggleFilterOption(this)">
+                <div class="fo-dot" style="background:#3b82f6"></div>
+                <span class="fo-label">Lisboa</span><span class="fo-count" id="fcount-Lisboa">0</span>
+                <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+              </div>
+            </div>
+            <div class="algarve-grupo open" id="algarveGrupo">
+              <div class="algarve-grupo-header" id="algarveGrupoHeader" onclick="toggleAlgarveGrupo()">
+                <div class="fo-dot" style="background:var(--gold);width:9px;height:9px;border-radius:50%;flex-shrink:0">
+                </div>
+                <span style="font-family:var(--fb);font-size:13px;font-weight:700;color:var(--ink);flex:1">Algarve</span>
+                <span class="fo-count" id="fcount-algarve-todos">0</span>
+                <div class="fo-checkbox" id="fo-checkbox-algarve-todos"
+                  onclick="event.stopPropagation();toggleAlgarveTodos()"><span class="fo-checkmark">✓</span></div>
+                <span class="algarve-grupo-arrow">▼</span>
+              </div>
+              <div class="algarve-concelhos" id="algarveConcelhos">
+                <div class="algarve-concelhos-label">Concelhos</div>
+                <div class="filter-option fo-albufeira" data-val="Albufeira" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#e05c2a"></div>
+                  <span class="fo-label">Albufeira</span><span class="fo-count" id="fcount-Albufeira">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-alcoutim" data-val="Alcoutim" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#a05c2a"></div>
+                  <span class="fo-label">Alcoutim</span><span class="fo-count" id="fcount-Alcoutim">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-aljezur" data-val="Aljezur" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#2a7a5c"></div>
+                  <span class="fo-label">Aljezur</span><span class="fo-count" id="fcount-Aljezur">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-castro-marim" data-val="Castro Marim" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#7a2a5c"></div>
+                  <span class="fo-label">Castro Marim</span><span class="fo-count" id="fcount-Castro Marim">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-faro" data-val="Faro" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#e0a500"></div>
+                  <span class="fo-label">Faro</span><span class="fo-count" id="fcount-Faro">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-lagoa" data-val="Lagoa" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#2a5ca0"></div>
+                  <span class="fo-label">Lagoa</span><span class="fo-count" id="fcount-Lagoa">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-lagos" data-val="Lagos" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#1a7a3f"></div>
+                  <span class="fo-label">Lagos</span><span class="fo-count" id="fcount-Lagos">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-loule" data-val="Loulé" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#c0392b"></div>
+                  <span class="fo-label">Loulé</span><span class="fo-count" id="fcount-Loulé">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-monchique" data-val="Monchique" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#5c7a2a"></div>
+                  <span class="fo-label">Monchique</span><span class="fo-count" id="fcount-Monchique">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-olhao" data-val="Olhão" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#2a7a9a"></div>
+                  <span class="fo-label">Olhão</span><span class="fo-count" id="fcount-Olhão">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-portimao" data-val="Portimão" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#8e44ad"></div>
+                  <span class="fo-label">Portimão</span><span class="fo-count" id="fcount-Portimão">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-sbras" data-val="São Brás de Alportel" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#d35400"></div>
+                  <span class="fo-label">São Brás de Alportel</span><span class="fo-count" id="fcount-São Brás de Alportel">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-silves" data-val="Silves" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#c0a030"></div>
+                  <span class="fo-label">Silves</span><span class="fo-count" id="fcount-Silves">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-tavira" data-val="Tavira" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#2980b9"></div>
+                  <span class="fo-label">Tavira</span><span class="fo-count" id="fcount-Tavira">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-viladobispo" data-val="Vila do Bispo" onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#7f8c8d"></div>
+                  <span class="fo-label">Vila do Bispo</span><span class="fo-count" id="fcount-Vila do Bispo">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+                <div class="filter-option fo-vrsa" data-val="Vila Real de Santo António"
+                  onclick="toggleFilterOption(this)">
+                  <div class="fo-dot" style="background:#16a085"></div>
+                  <span class="fo-label">Vila Real de Santo António</span><span class="fo-count" id="fcount-Vila Real de Santo António">0</span>
+                  <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- fecha filter-modal-body -->
+      <div class="filter-modal-footer">
+        <button class="btn btn-ghost" onclick="fecharFiltrosModal()">Cancelar</button>
+        <button class="btn btn-red" onclick="aplicarFiltrosModal()">Aplicar filtros</button>
+      </div>
+    </div><!-- fecha filter-modal -->
+  </div><!-- fecha filter-modal-overlay -->
+
+  <!-- MODAL DETALHE RESTAURANTE -->
+  <div class="detail-overlay" id="detailOverlay">
+    <div class="detail-modal">
+      <div class="detail-header">
+        <div class="detail-header-top">
+          <div id="dZonaWrap">
+            <div class="fv" id="fv_zona"><span class="rest-detail-zona" id="dZonaBadge">—</span></div>
+            <div class="fe" id="fe_zona" style="display:none;min-width:220px">
+              <div class="csel-wrap" id="cselEditZonaWrap">
+                <div class="csel-trigger" id="cselEditZonaTrigger" onclick="toggleCselEdit()">
+                  <span class="csel-placeholder" id="cselEditZonaLabel">— Selecionar —</span>
+                  <span class="csel-arrow">▼</span>
+                </div>
+                <div class="csel-dropdown" id="cselEditZonaDropdown">
+                  <div class="csel-scroll" id="cselEditZonaScroll">
+                    <div class="csel-divider"></div>
+                    <div class="csel-opt" data-val="Lisboa" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#3b82f6"></span>Lisboa</div>
+                    <div class="csel-divider"></div>
+                    <div class="csel-group-label">Algarve</div>
+                    <div class="csel-opt" data-val="Albufeira" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#e05c2a"></span>Albufeira</div>
+                    <div class="csel-opt" data-val="Alcoutim" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#a05c2a"></span>Alcoutim</div>
+                    <div class="csel-opt" data-val="Aljezur" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#2a7a5c"></span>Aljezur</div>
+                    <div class="csel-opt" data-val="Castro Marim" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#7a2a5c"></span>Castro Marim</div>
+                    <div class="csel-opt" data-val="Faro" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#e0a500"></span>Faro</div>
+                    <div class="csel-opt" data-val="Lagoa" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#2a5ca0"></span>Lagoa</div>
+                    <div class="csel-opt" data-val="Lagos" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#1a7a3f"></span>Lagos</div>
+                    <div class="csel-opt" data-val="Loulé" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#c0392b"></span>Loulé</div>
+                    <div class="csel-opt" data-val="Monchique" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#5c7a2a"></span>Monchique</div>
+                    <div class="csel-opt" data-val="Olhão" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#2a7a9a"></span>Olhão</div>
+                    <div class="csel-opt" data-val="Portimão" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#8e44ad"></span>Portimão</div>
+                    <div class="csel-opt" data-val="São Brás de Alportel" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#d35400"></span>São Brás de Alportel</div>
+                    <div class="csel-opt" data-val="Silves" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#c0a030"></span>Silves</div>
+                    <div class="csel-opt" data-val="Tavira" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#2980b9"></span>Tavira</div>
+                    <div class="csel-opt" data-val="Vila do Bispo" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#7f8c8d"></span>Vila do Bispo</div>
+                    <div class="csel-opt" data-val="Vila Real de Santo António" onclick="selectCselEdit(this)">
+                      <span class="csel-dot" style="background:#16a085"></span>Vila Real de Santo António</div>
+                  </div>
+                </div>
+              </div>
+              <input type="hidden" id="ef_zona" value="">
+            </div>
+          </div>
+          <button class="detail-close-btn" onclick="fecharDetalhe()">✕</button>
+        </div>
+        <!-- Nome -->
+        <div class="fv" id="fv_nome"
+          style="font-family:var(--fh);font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.02em;line-height:1.2">
+          —</div>
+        <div class="fe" id="fe_nome" style="display:none;margin-top:4px">
+          <input type="text" class="edit-input" id="ef_nome" style="font-size:16px;font-weight:600">
+        </div>
+      </div>
+
+      <div class="detail-body" id="dBody"></div>
+
+      <div class="detail-footer" id="dFooter">
+        <div id="footerView" style="display:flex;gap:8px;align-items:center;width:100%;justify-content:space-between">
+          <div id="footerViewLeft"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="ativarEdicao()" id="dBtnEditar" style="display:none">✏️ Editar</button>
+            <button class="btn btn-dark" onclick="fecharDetalhe()">Fechar</button>
+          </div>
+        </div>
+        <div id="footerEdit"
+          style="display:none;gap:8px;align-items:center;width:100%;justify-content:flex-end;flex-wrap:wrap">
+          <span class="edit-feedback" id="dEditFeedback" style="display:none"></span>
+          <button class="btn-cancel-edit" onclick="cancelarEdicao()">Cancelar</button>
+          <button class="btn-save" id="dBtnGravar" onclick="gravarRestaurante()">💾 Gravar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIRM ELIMINAR -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-modal">
+      <div class="confirm-icon">🗑️</div>
+      <div class="confirm-title">Eliminar restaurante?</div>
+      <div class="confirm-desc" id="confirmDesc">Esta ação é irreversível.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" onclick="fecharConfirm()">Cancelar</button>
+        <button class="btn btn-red" id="confirmBtnEliminar" onclick="confirmarEliminar()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL SUGERIR -->
+  <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)fecharModal()">
+    <div class="modal">
+      <div class="modal-title">🍽️ Sugerir Restaurante</div>
+      <div class="form-group">
+        <label class="form-label">Nome <span class="req">*</span></label>
+        <input class="form-input" id="fNome" placeholder="Tasca do Zé">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Região <span class="req">*</span></label>
+          <div class="csel-wrap" id="cselZonaWrap">
+            <div class="csel-trigger" id="cselZonaTrigger" onclick="toggleCsel()">
+              <span class="csel-placeholder" id="cselZonaLabel">— Selecionar —</span>
+              <span class="csel-arrow">▼</span>
+            </div>
+            <div class="csel-dropdown" id="cselZonaDropdown">
+              <div class="csel-scroll" id="cselZonaScroll">
+                <div class="csel-opt" data-val="" onclick="selectCsel(this)">
+                  <span style="color:var(--muted2)">— Selecionar —</span></div>
+                <div class="csel-divider"></div>
+                <div class="csel-opt" data-val="Lisboa" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#3b82f6"></span>Lisboa</div>
+                <div class="csel-divider"></div>
+                <div class="csel-group-label">Algarve</div>
+                <div class="csel-opt" data-val="Albufeira" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#e05c2a"></span>Albufeira</div>
+                <div class="csel-opt" data-val="Alcoutim" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#a05c2a"></span>Alcoutim</div>
+                <div class="csel-opt" data-val="Aljezur" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#2a7a5c"></span>Aljezur</div>
+                <div class="csel-opt" data-val="Castro Marim" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#7a2a5c"></span>Castro Marim</div>
+                <div class="csel-opt" data-val="Faro" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#e0a500"></span>Faro</div>
+                <div class="csel-opt" data-val="Lagoa" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#2a5ca0"></span>Lagoa</div>
+                <div class="csel-opt" data-val="Lagos" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#1a7a3f"></span>Lagos</div>
+                <div class="csel-opt" data-val="Loulé" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#c0392b"></span>Loulé</div>
+                <div class="csel-opt" data-val="Monchique" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#5c7a2a"></span>Monchique</div>
+                <div class="csel-opt" data-val="Olhão" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#2a7a9a"></span>Olhão</div>
+                <div class="csel-opt" data-val="Portimão" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#8e44ad"></span>Portimão</div>
+                <div class="csel-opt" data-val="São Brás de Alportel" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#d35400"></span>São Brás de Alportel</div>
+                <div class="csel-opt" data-val="Silves" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#c0a030"></span>Silves</div>
+                <div class="csel-opt" data-val="Tavira" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#2980b9"></span>Tavira</div>
+                <div class="csel-opt" data-val="Vila do Bispo" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#7f8c8d"></span>Vila do Bispo</div>
+                <div class="csel-opt" data-val="Vila Real de Santo António" onclick="selectCsel(this)">
+                  <span class="csel-dot" style="background:#16a085"></span>Vila Real de Santo António</div>
+              </div>
+            </div>
+          </div>
+          <input type="hidden" id="fZona" value="">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Cozinha</label>
+          <input class="form-input" id="fTipo" placeholder="Portuguesa">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Avaliação</label>
+        <div class="stars-row-create" id="starsCreateRow">
+          <button class="star-c" data-v="1" onclick="setStarCreate(1)">★</button>
+          <button class="star-c" data-v="2" onclick="setStarCreate(2)">★</button>
+          <button class="star-c" data-v="3" onclick="setStarCreate(3)">★</button>
+          <button class="star-c" data-v="4" onclick="setStarCreate(4)">★</button>
+          <button class="star-c" data-v="5" onclick="setStarCreate(5)">★</button>
+        </div>
+        <input type="hidden" id="fRating" value="3">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Preço médio por pessoa</label>
+          <input class="form-input" id="fPreco" placeholder="12,50" oninput="this.value=this.value.replace(/[^0-9,]/g,'')">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Horário</label>
+          <input class="form-input" id="fHorario" placeholder="12h-15h / 19h-22h">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefone</label>
+        <input class="form-input" id="fTelefone" placeholder="289123465" type="tel">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Foto (URL da imagem)</label>
+        <input class="form-input" id="fFoto" placeholder="https://…">
+        <div class="form-hint">Cola o link de uma imagem do Google, TripAdvisor, etc.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Link Google Maps</label>
+        <input class="form-input" id="fMaps" placeholder="https://maps.google.com/…">
+      </div>
+      <div id="formErro"
+        style="display:none;background:var(--red-light);border:1px solid rgba(217,43,34,.2);border-radius:8px;padding:10px 14px;font-size:12px;font-weight:600;color:var(--red);margin-top:8px">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="fecharModal()">Cancelar</button>
+        <button class="btn btn-red" id="btnGuardar" onclick="guardar()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GRELHA -->
+  <div class="content-wrap">
+    <div class="rest-grid" id="restGrid"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-logo-wrap">
+      <div class="loading-logo-base"></div>
+      <div class="loading-logo-fill"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+    <div>© 2026 RISE · a Europalco company</div>
+    <div>Departamento de Planeamento ·
+      <?= dados.dataHoje ?>
+    </div>
+  </footer>
+
+  <script>
+    var todosRestaurantes = [];
+var activeZonas = [];
+var pendingZonas = [];
+var restAtivo = null;
+var podeEditarJS   = ('<?= podeEditar ?>'   === 'true');
+var podeEliminarJS = ('<?= podeEliminar ?>' === 'true');
+
+var ZONA_CLS = {
+  Lisboa:'zona-lisboa',
+  Albufeira:'zona-albufeira', Alcoutim:'zona-alcoutim', Aljezur:'zona-aljezur',
+  'Castro Marim':'zona-castro-marim', Faro:'zona-faro', Lagoa:'zona-lagoa',
+  Lagos:'zona-lagos', 'Loulé':'zona-loule', Monchique:'zona-monchique',
+  Olhão:'zona-olhao', Portimão:'zona-portimao', 'São Brás de Alportel':'zona-sbras',
+  Silves:'zona-silves', Tavira:'zona-tavira', 'Vila do Bispo':'zona-viladobispo',
+  'Vila Real de Santo António':'zona-vrsa'
+};
+var ZONA_RDZCLS = {
+  Lisboa:'rdz-lisboa',
+  Albufeira:'rdz-albufeira', Alcoutim:'rdz-alcoutim', Aljezur:'rdz-aljezur',
+  'Castro Marim':'rdz-castro-marim', Faro:'rdz-faro', Lagoa:'rdz-lagoa',
+  Lagos:'rdz-lagos', 'Loulé':'rdz-loule', Monchique:'rdz-monchique',
+  Olhão:'rdz-olhao', Portimão:'rdz-portimao', 'São Brás de Alportel':'rdz-sbras',
+  Silves:'rdz-silves', Tavira:'rdz-tavira', 'Vila do Bispo':'rdz-viladobispo',
+  'Vila Real de Santo António':'rdz-vrsa'
+};
+var ZONA_ICONS = {Lisboa:'🏙️',Porto:'⚓',Algarve:'🌊','Setúbal':'🌉',Outro:'📍'};
+
+/* ── HELPERS ── */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function formatarData(d){
+  if(!d) return '';
+  var dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return String(dt.getDate()).padStart(2,'0')+'/'+String(dt.getMonth()+1).padStart(2,'0')+'/'+dt.getFullYear();
+}
+function toast(msg,tipo){
+  var el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className='toast '+(tipo==='err'?'err':'ok')+' show';
+  clearTimeout(window._toastTimer);
+  window._toastTimer=setTimeout(function(){ el.classList.remove('show'); },3500);
+}
+
+/* ── CARREGAR ── */
+function carregarRestaurantes(){
+  document.getElementById('loadingOverlay').classList.add('open');
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(res&&res.ok){ todosRestaurantes=res.restaurantes||[]; atualizarCountsModal(); renderFiltrado(); }
+      else{ erroGrid(res?res.erro:'Erro desconhecido'); }
+    })
+    .withFailureHandler(function(err){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      erroGrid(err.message||'Falha na ligação.');
+    })
+    .getRestaurantesCliente();
+}
+function erroGrid(msg){
+  document.getElementById('restGrid').innerHTML='<div class="empty-state"><div class="icon">⚠️</div><p>Não foi possível carregar os restaurantes.<br><small>'+esc(msg)+'</small></p></div>';
+}
+
+/* ── RENDER GRID ── */
+function renderFiltrado(){
+  var pesquisa=(document.getElementById('searchInput').value||'').toLowerCase().trim();
+  var filtrados=todosRestaurantes.filter(function(r){
+    var mZona = activeZonas.length === 0 || activeZonas.indexOf(r.zona) !== -1;
+    var mSearch=!pesquisa||(r.nome||'').toLowerCase().indexOf(pesquisa)!==-1||(r.zona||'').toLowerCase().indexOf(pesquisa)!==-1||(r.tipo||'').toLowerCase().indexOf(pesquisa)!==-1;
+    return mZona&&mSearch;
+  });
+  if(!filtrados.length){
+    document.getElementById('restGrid').innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>Nenhum restaurante encontrado.</p></div>';
+    return;
+  }
+  document.getElementById('restGrid').innerHTML=filtrados.map(function(r){
+var icon=ZONA_ICONS[isAlgarve(r.zona)?'Algarve':r.zona]||'📍';
+var zonaCls=ZONA_CLS[r.zona]||'zona-outro';
+
+    var fotoHtml=r.foto
+      ?'<img class="rest-foto" src="'+esc(r.foto)+'" alt="'+esc(r.nome)+'" onerror="this.style.display=\'none\';this.nextSibling.style.display=\'flex\'">'
+        +'<div class="rest-foto-placeholder" style="display:none">'+icon+'</div>'
+      :'<div class="rest-foto-placeholder">'+icon+'</div>';
+    return '<div class="rest-card" onclick="abrirDetalhe(\''+esc(r.id)+'\')">'
+      +fotoHtml
+      +'<div class="rest-body">'
+      +'<div class="rest-top">'
+      +'<div><div class="rest-name">'+esc(r.nome)+'</div><span class="rest-zona-badge '+zonaCls+'">'+esc(r.zona)+'</span></div>'
+      +'<div class="rest-rating">'+(r.rating||'—')+' ★</div>'
+      +'</div>'
+      +'<div class="rest-info">'
++(r.tipo?'<div class="rest-info-row">🍴 <span>'+esc(r.tipo)+'</span></div>':'')
++(r.preco?'<div class="rest-info-row">💶 <span>'+esc(String(r.preco).replace('.',','))+' €</span></div>':'')
++(r.horario?'<div class="rest-info-row">🕐 <span>'+esc(r.horario)+'</span></div>':'')
++(r.telefone?'<div class="rest-info-row">📞 <a href="tel:'+esc(r.telefone)+'" style="color:var(--black);text-decoration:none" onclick="event.stopPropagation()">'+esc(r.telefone)+'</a></div>':'')
++(r.maps?'<div class="rest-info-row">📍 <a href="'+esc(r.maps)+'" target="_blank" rel="noopener" style="color:var(--red);text-decoration:none;font-weight:600" onclick="event.stopPropagation()">Localização ↗</a></div>':'')
++'</div>'
+      +'<div class="rest-meta">Sugerido por '+esc(r.autor||'—')+(r.data?' · '+formatarData(r.data):'')+'</div>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+/* ── MODAL FILTROS ── */
+function abrirFiltrosModal(){
+  pendingZonas=activeZonas.slice();
+  document.querySelectorAll('.filter-option').forEach(function(opt){ opt.classList.toggle('selected',pendingZonas.indexOf(opt.dataset.val)!==-1); });
+  atualizarCountsModal();
+  sincronizarCheckboxAlgarve();
+  document.getElementById('filterModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function fecharFiltrosModal(){ document.getElementById('filterModalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function toggleFg(id){ document.getElementById(id).classList.toggle('open'); }
+function toggleFilterOption(el){
+  var val=el.dataset.val, idx=pendingZonas.indexOf(val);
+  if(idx!==-1){ pendingZonas.splice(idx,1); el.classList.remove('selected'); }
+  else{ pendingZonas.push(val); el.classList.add('selected'); }
+  sincronizarCheckboxAlgarve();
+}
+
+function aplicarFiltrosModal(){ activeZonas=pendingZonas.slice(); fecharFiltrosModal(); renderFiltrado(); atualizarBotaoFiltrar(); }
+function removerFiltros(){ activeZonas=[]; pendingZonas=[]; renderFiltrado(); atualizarBotaoFiltrar(); }
+function atualizarBotaoFiltrar(){
+  var btn=document.getElementById('btnFiltrar'),lbl=document.getElementById('btnFiltrarLabel'),rem=document.getElementById('btnRemoverFiltros');
+  if(activeZonas.length>0){ btn.classList.add('active'); lbl.textContent='Filtros aplicados ('+activeZonas.length+')'; rem.style.display=''; }
+  else{ btn.classList.remove('active'); lbl.textContent='Filtrar'; rem.style.display='none'; }
+}
+
+function atualizarCountsModal(){
+  var TODAS = ['Lisboa','Albufeira','Alcoutim','Aljezur','Castro Marim','Faro','Lagoa','Lagos','Loulé','Monchique','Olhão','Portimão','São Brás de Alportel','Silves','Tavira','Vila do Bispo','Vila Real de Santo António'];
+  TODAS.forEach(function(z){
+    var el = document.getElementById('fcount-' + z);
+    if(el) el.textContent = todosRestaurantes.filter(function(r){ return r.zona === z; }).length;
+  });
+  var fgc = document.getElementById('fgcount-zona');
+  if(fgc){ fgc.textContent = pendingZonas.length; fgc.classList.toggle('visible', pendingZonas.length > 0); }
+  var elTodos = document.getElementById('fcount-algarve-todos');
+if(elTodos) elTodos.textContent = todosRestaurantes.filter(function(r){ return isAlgarve(r.zona); }).length;
+}
+
+/* ── ABRIR DETALHE ── */
+function abrirDetalhe(id){
+  var r=null;
+  for(var i=0;i<todosRestaurantes.length;i++){ if(todosRestaurantes[i].id===id){ r=todosRestaurantes[i]; break; } }
+  if(!r) return;
+  restAtivo=r;
+
+  var badge=document.getElementById('dZonaBadge');
+  badge.textContent=r.zona;
+  badge.className='rest-detail-zona '+(ZONA_RDZCLS[r.zona]||'rdz-outro');
+
+  document.getElementById('ef_zona').value = r.zona;
+  // sincronizar label do custom select de edição
+var editOpt = document.querySelector('#cselEditZonaScroll .csel-opt[data-val="'+r.zona+'"]');
+if(editOpt){
+  document.querySelectorAll('#cselEditZonaScroll .csel-opt').forEach(function(o){ o.classList.remove('selected'); });
+  editOpt.classList.add('selected');
+  var dot = editOpt.querySelector('.csel-dot');
+  var dotHtml = dot ? '<span class="csel-dot" style="'+dot.getAttribute('style')+'"></span>' : '';
+  var editLbl = document.getElementById('cselEditZonaLabel');
+  editLbl.className = 'csel-value';
+  editLbl.innerHTML = dotHtml + r.zona;
+}
+document.getElementById('fv_nome').textContent = r.nome;
+document.getElementById('ef_nome').value = r.nome;
+
+  var icon=ZONA_ICONS[r.zona]||'📍';
+
+  var fotoHtml=r.foto
+    ?'<img id="dFotoPreview" style="width:100%;height:180px;object-fit:cover;border-radius:8px;display:block;margin-bottom:4px" src="'+esc(r.foto)+'" onerror="this.style.display=\'none\';document.getElementById(\'dFotoPlaceholder\').style.display=\'flex\'">'
+      +'<div id="dFotoPlaceholder" style="display:none;width:100%;height:180px;background:var(--off);border-radius:8px;align-items:center;justify-content:center;font-size:48px;border:1px solid var(--border);margin-bottom:4px">'+icon+'</div>'
+    :'<img id="dFotoPreview" style="width:100%;height:180px;object-fit:cover;border-radius:8px;display:none;margin-bottom:4px">'
+      +'<div id="dFotoPlaceholder" style="width:100%;height:180px;background:var(--off);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;border:1px solid var(--border);margin-bottom:4px">'+icon+'</div>';
+
+  var starsHtml='<div class="stars-row">';
+  var r_rating=parseInt(r.rating)||0;
+  for(var s=1;s<=5;s++) starsHtml+='<button class="star-btn'+(s<=r_rating?' on':'')+'" data-v="'+s+'" onclick="setStarEdit('+s+')">★</button>';
+  starsHtml+='</div><input type="hidden" id="ef_rating" value="'+r_rating+'">';
+
+  var html='<div class="detail-section">'
+    +fotoHtml
+    +'<div class="detail-fields">'
+
+    +'<div class="detail-field"><div class="detail-field-label">Tipo de Cozinha</div>'
+    +'<div class="fv" id="fv_tipo"><div class="detail-field-value'+(r.tipo?'':' empty')+'">'+(r.tipo?esc(r.tipo):'—')+'</div></div>'
+    +'<div class="fe" id="fe_tipo" style="display:none"><input type="text" class="edit-input" id="ef_tipo" value="'+esc(r.tipo||'')+'"></div>'
+    +'</div>'
+
+    +'<div class="detail-field"><div class="detail-field-label">Avaliação</div>'
+    +'<div class="fv" id="fv_rating"><div class="detail-field-value" style="color:var(--gold);font-weight:700">'+(r_rating||'—')+(r_rating?' ★':'')+'</div></div>'
+    +'<div class="fe" id="fe_rating_wrap" style="display:none">'+starsHtml+'</div>'
+    +'</div>'
+
+    +'<div class="detail-field"><div class="detail-field-label">Preço por Pessoa</div>'
+    +'<div class="fv" id="fv_preco"><div class="detail-field-value'+(r.preco?'':' empty')+'">'+(r.preco?esc(String(r.preco).replace('.',','))+' €':'—')+'</div></div>'
+    +'<div class="fe" id="fe_preco" style="display:none"><input type="text" class="edit-input" id="ef_preco" value="'+esc(r.preco||'')+'" placeholder="12,50" oninput="this.value=this.value.replace(/[^0-9,]/g,\'\')"></div>'
+    +'</div>'
+
+    +'<div class="detail-field"><div class="detail-field-label">Horário</div>'
+    +'<div class="fv" id="fv_horario"><div class="detail-field-value'+(r.horario?'':' empty')+'">'+(r.horario?esc(r.horario):'—')+'</div></div>'
+    +'<div class="fe" id="fe_horario" style="display:none"><input type="text" class="edit-input" id="ef_horario" value="'+esc(r.horario||'')+'"></div>'
+    +'</div>'
+
+    +'</div>'
+
+    +'<div class="detail-fields single">'
+    +'<div class="detail-field"><div class="detail-field-label">Telefone</div>'
+    +'<div class="fv" id="fv_telefone"><div class="detail-field-value'+(r.telefone?'':' empty')+'">'+(r.telefone?'<a href="tel:'+esc(r.telefone)+'">'+esc(r.telefone)+'</a>':'—')+'</div></div>'
+    +'<div class="fe" id="fe_telefone" style="display:none"><input type="tel" class="edit-input" id="ef_telefone" value="'+esc(r.telefone||'')+'"></div>'
+    +'</div></div>'
+
+    +'<div class="detail-fields single">'
+    +'<div class="detail-field"><div class="detail-field-label">Google Maps</div>'
+    +'<div class="fv" id="fv_maps"><div class="detail-field-value'+(r.maps?'':' empty')+'">'+(r.maps?'<a href="'+esc(r.maps)+'" target="_blank" rel="noopener">Localização ↗</a>':'—')+'</div></div>'
+    +'<div class="fe" id="fe_maps" style="display:none"><input type="text" class="edit-input" id="ef_maps" value="'+esc(r.maps||'')+'"></div>'
+    +'</div></div>'
+
++'<div class="fe" id="fe_foto" style="display:none">'
++'<div class="detail-field-label">URL da Foto</div>'
++'<input type="text" class="edit-input" id="ef_foto" value="'+esc(r.foto||'')+'" oninput="atualizarFotoPreview(this.value)" placeholder="https://…">'
++'</div>'
+
+    +'<div class="detail-fields">'
+    +'<div class="detail-field"><div class="detail-field-label">Sugerido por</div><div class="detail-field-value">'+esc(r.autor||'—')+'</div></div>'
+    +'<div class="detail-field"><div class="detail-field-label">Data</div><div class="detail-field-value">'+formatarData(r.data)+'</div></div>'
+    +'</div>'
+    +'</div>';
+
+  document.getElementById('dBody').innerHTML=html;
+
+  document.getElementById('dBtnEditar').style.display=podeEditarJS?'':'none';
+  var left=document.getElementById('footerViewLeft');
+  if(left) left.innerHTML=podeEliminarJS?'<button class="btn-eliminar" onclick="pedirConfirm()">🗑️ Eliminar</button>':'';
+
+  cancelarEdicao();
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function atualizarFotoPreview(url){
+  var img=document.getElementById('dFotoPreview');
+  var ph=document.getElementById('dFotoPlaceholder');
+  if(!img||!ph) return;
+  if(url){
+    img.src=url;
+    img.style.display='block';
+    ph.style.display='none';
+    img.onerror=function(){ img.style.display='none'; ph.style.display='flex'; };
+  } else {
+    img.style.display='none';
+    ph.style.display='flex';
+  }
+}
+
+function fecharDetalhe(){
+  cancelarEdicao();
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  var editLbl=document.getElementById('cselEditZonaLabel');
+  if(editLbl){ editLbl.className='csel-placeholder'; editLbl.textContent='— Selecionar —'; }
+  document.querySelectorAll('#cselEditZonaScroll .csel-opt').forEach(function(o){ o.classList.remove('selected'); });
+  closeCselEdit();
+}
+
+/* ── EDIÇÃO ── */
+function ativarEdicao(){
+  if(!restAtivo||!podeEditarJS) return;
+  document.getElementById('fv_zona').style.display='none';
+  document.getElementById('fe_zona').style.display='block';
+  document.getElementById('fv_nome').style.display='none';
+  document.getElementById('fe_nome').style.display='block';
+  document.querySelectorAll('#dBody .fv').forEach(function(el){ el.style.display='none'; });
+  document.querySelectorAll('#dBody .fe').forEach(function(el){ el.style.display='block'; });
+  document.getElementById('footerView').style.display='none';
+  document.getElementById('footerEdit').style.display='flex';
+  var fb=document.getElementById('dEditFeedback');
+  if(fb){ fb.style.display='none'; fb.textContent=''; fb.className='edit-feedback'; }
+}
+function cancelarEdicao(){
+  document.getElementById('fv_zona').style.display='';
+  document.getElementById('fe_zona').style.display='none';
+  document.getElementById('fv_nome').style.display='';
+  document.getElementById('fe_nome').style.display='none';
+  document.querySelectorAll('#dBody .fv').forEach(function(el){ el.style.display=''; });
+  document.querySelectorAll('#dBody .fe').forEach(function(el){ el.style.display='none'; });
+  var fv=document.getElementById('footerView'),fe=document.getElementById('footerEdit');
+  if(fv) fv.style.display='flex';
+  if(fe) fe.style.display='none';
+}
+function setStarEdit(n){
+  document.getElementById('ef_rating').value=n;
+  document.querySelectorAll('#dBody .star-btn').forEach(function(b){ b.classList.toggle('on',parseInt(b.dataset.v)<=n); });
+}
+
+function gravarRestaurante(){
+  if(!restAtivo) return;
+var updates = {
+  nome:     document.getElementById('ef_nome').value.trim(),
+  zona:     document.getElementById('ef_zona').value,
+    tipo:     document.getElementById('ef_tipo').value.trim(),
+    rating:   document.getElementById('ef_rating').value,
+    preco:    document.getElementById('ef_preco').value.trim(),
+    horario:  document.getElementById('ef_horario').value.trim(),
+    telefone: document.getElementById('ef_telefone').value.trim(),
+    maps:     document.getElementById('ef_maps').value.trim(),
+    foto:     document.getElementById('ef_foto').value.trim(),
+  };
+  if(!updates.nome){ toast('O nome não pode estar vazio.','err'); return; }
+  var btn=document.getElementById('dBtnGravar'),fb=document.getElementById('dEditFeedback');
+  btn.disabled=true; btn.textContent='⏳ A gravar...';
+  if(fb) fb.style.display='none';
+  document.getElementById('loadingOverlay').classList.add('open');
+
+  google.script.run
+    .withSuccessHandler(function(){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      Object.keys(updates).forEach(function(k){ restAtivo[k]=updates[k]; });
+      for(var i=0;i<todosRestaurantes.length;i++){
+        if(todosRestaurantes[i].id===restAtivo.id){ Object.keys(updates).forEach(function(k){ todosRestaurantes[i][k]=updates[k]; }); break; }
+      }
+      document.getElementById('fv_nome').textContent=updates.nome;
+      var badge=document.getElementById('dZonaBadge');
+      badge.textContent=updates.zona;
+      badge.className='rest-detail-zona '+(ZONA_RDZCLS[updates.zona]||'rdz-outro');
+      if(fb){ fb.textContent='✓ Gravado'; fb.className='edit-feedback ok'; fb.style.display=''; }
+      btn.disabled=false; btn.textContent='💾 Gravar';
+      renderFiltrado();
+      setTimeout(function(){ abrirDetalhe(restAtivo.id); },1200);
+    })
+    .withFailureHandler(function(){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(fb){ fb.textContent='✕ Erro ao gravar'; fb.className='edit-feedback err'; fb.style.display=''; }
+      btn.disabled=false; btn.textContent='💾 Gravar';
+    })
+    .updateRestauranteCliente(restAtivo.id,updates);
+}
+
+/* ── ELIMINAR ── */
+function pedirConfirm(){
+  if(!restAtivo) return;
+  document.getElementById('confirmDesc').textContent='O restaurante "'+restAtivo.nome+'" será apagado permanentemente. Esta ação não pode ser desfeita.';
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function fecharConfirm(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  document.getElementById('confirmBtnEliminar').disabled=false;
+  document.getElementById('confirmBtnEliminar').textContent='Eliminar';
+}
+function confirmarEliminar(){
+  if(!restAtivo) return;
+  var btn=document.getElementById('confirmBtnEliminar');
+  btn.disabled=true; btn.textContent='⏳ A eliminar...';
+  document.getElementById('loadingOverlay').classList.add('open');
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(res&&res.ok){
+        todosRestaurantes=todosRestaurantes.filter(function(r){ return r.id!==restAtivo.id; });
+        fecharConfirm(); fecharDetalhe(); renderFiltrado(); atualizarCountsModal();
+      } else {
+        btn.disabled=false; btn.textContent='Eliminar';
+        document.getElementById('confirmDesc').textContent='⚠️ Erro ao eliminar. Tenta novamente.';
+      }
+    })
+    .withFailureHandler(function(){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      btn.disabled=false; btn.textContent='Eliminar';
+      document.getElementById('confirmDesc').textContent='⚠️ Erro ao eliminar. Tenta novamente.';
+    })
+    .deleteRestauranteCliente(restAtivo.id);
+}
+
+/* ── MODAL CRIAR ── */
+function setStarCreate(n){
+  document.getElementById('fRating').value=n;
+  document.querySelectorAll('.star-c').forEach(function(b){ b.classList.toggle('on',parseInt(b.dataset.v)<=n); });
+}
+function abrirModal(){
+  document.getElementById('modalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  setStarCreate(3);
+}
+function fecharModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow='';
+  ['fNome','fTipo','fPreco','fHorario','fTelefone','fFoto','fMaps'].forEach(function(id){ document.getElementById(id).value=''; });
+  document.getElementById('fZona').value='';
+  var lbl=document.getElementById('cselZonaLabel');
+if(lbl){ lbl.className='csel-placeholder'; lbl.textContent='— Selecionar —'; }
+document.querySelectorAll('#cselZonaScroll .csel-opt').forEach(function(o){ o.classList.remove('selected'); });
+closeCsel();
+  setStarCreate(3);
+}
+
+function mostrarErroForm(msg){
+  var el=document.getElementById('formErro');
+  el.textContent='⚠️ '+msg;
+  el.style.display='block';
+  setTimeout(function(){ el.style.display='none'; },3500);
+}
+
+function guardar(){
+  var nome = document.getElementById('fNome').value.trim();
+  var zona = document.getElementById('fZona').value;
+  if(!nome){ mostrarErroForm('Preenche o nome do restaurante.'); return; }
+  if(!zona){ mostrarErroForm('Seleciona uma zona.'); return; }
+  document.getElementById('formErro').style.display='none';
+  var btn=document.getElementById('btnGuardar');
+  btn.disabled=true; btn.textContent='⏳ A guardar…';
+  document.getElementById('loadingOverlay').classList.add('open');
+  var dadosForm={
+    nome:nome,zona:zona,
+    tipo:document.getElementById('fTipo').value.trim(),
+    rating:document.getElementById('fRating').value,
+    preco:document.getElementById('fPreco').value.trim(),
+    horario:document.getElementById('fHorario').value.trim(),
+    telefone:document.getElementById('fTelefone').value.trim(),
+    foto:document.getElementById('fFoto').value.trim(),
+    maps:document.getElementById('fMaps').value.trim(),
+  };
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      btn.disabled=false; btn.textContent='Guardar';
+      if(res&&res.ok){ fecharModal(); carregarRestaurantes(); }
+      else{ mostrarErroForm((res&&res.erro)?res.erro:'Erro ao guardar.'); }
+    })
+    .withFailureHandler(function(err){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      btn.disabled=false; btn.textContent='Guardar';
+      mostrarErroForm('Erro: '+(err.message||'Falha na ligação.'));
+    })
+    .addRestauranteCliente(dadosForm);
+}
+
+function atualizarFotoPreview(url) {
+  var img = document.getElementById('dFotoPreview');
+  var placeholder = document.getElementById('dFotoPlaceholder');
+  if (!img || !placeholder) return;
+  if (url) {
+    img.src = url;
+    img.style.display = 'block';
+    placeholder.style.display = 'none';
+    img.onerror = function() {
+      img.style.display = 'none';
+      placeholder.style.display = 'flex';
+    };
+  } else {
+    img.style.display = 'none';
+    placeholder.style.display = 'flex';
+  }
+}
+
+var ALGARVE_CONCELHOS = ['Albufeira','Alcoutim','Aljezur','Castro Marim','Faro','Lagoa','Lagos','Loulé','Monchique','Olhão','Portimão','São Brás de Alportel','Silves','Tavira','Vila do Bispo','Vila Real de Santo António'];
+
+function toggleAlgarveGrupo(){
+  var grupo = document.getElementById('algarveGrupo');
+  grupo.classList.toggle('open');
+}
+function toggleAlgarveTodos(el){
+  var todosAtivos = ALGARVE_CONCELHOS.every(function(c){ return pendingZonas.indexOf(c) !== -1; });
+  if(todosAtivos){
+    ALGARVE_CONCELHOS.forEach(function(c){ var i=pendingZonas.indexOf(c); if(i!==-1) pendingZonas.splice(i,1); });
+  } else {
+    ALGARVE_CONCELHOS.forEach(function(c){ if(pendingZonas.indexOf(c)===-1) pendingZonas.push(c); });
+  }
+  document.querySelectorAll('#algarveConcelhos .filter-option').forEach(function(opt){
+    opt.classList.toggle('selected', pendingZonas.indexOf(opt.dataset.val) !== -1);
+  });
+  sincronizarCheckboxAlgarve();
+  atualizarCountsModal();
+}
+
+function sincronizarCheckboxAlgarve(){
+  var allSel = ALGARVE_CONCELHOS.every(function(c){ return pendingZonas.indexOf(c) !== -1; });
+  var algumSel = ALGARVE_CONCELHOS.some(function(c){ return pendingZonas.indexOf(c) !== -1; });
+  var cb = document.getElementById('fo-checkbox-algarve-todos');
+  var header = document.getElementById('algarveGrupoHeader');
+  if(cb){ cb.style.background = allSel ? 'var(--gold)' : algumSel ? 'rgba(224,165,0,.3)' : ''; cb.style.borderColor = algumSel ? 'var(--gold)' : ''; }
+  if(header) header.classList.toggle('selected', algumSel);
+}
+
+
+function isAlgarve(zona){ return ALGARVE_CONCELHOS.indexOf(zona)!==-1; }
+
+/* ── CUSTOM SELECT ZONA ── */
+function toggleCsel(){
+  var trigger=document.getElementById('cselZonaTrigger');
+  var dropdown=document.getElementById('cselZonaDropdown');
+  if(dropdown.classList.contains('open')){ closeCsel(); return; }
+  trigger.classList.add('open');
+  dropdown.classList.add('open');
+}
+function closeCsel(){
+  var t=document.getElementById('cselZonaTrigger');
+  var d=document.getElementById('cselZonaDropdown');
+  if(t) t.classList.remove('open');
+  if(d) d.classList.remove('open');
+}
+function selectCsel(el){
+  var val=el.dataset.val;
+  document.getElementById('fZona').value=val;
+  document.querySelectorAll('#cselZonaScroll .csel-opt').forEach(function(o){ o.classList.remove('selected'); });
+  var labelEl=document.getElementById('cselZonaLabel');
+  if(val){
+    el.classList.add('selected');
+    var dot=el.querySelector('.csel-dot');
+    var dotHtml=dot?'<span class="csel-dot" style="'+dot.getAttribute('style')+'"></span>':'';
+    labelEl.className='csel-value';
+    labelEl.innerHTML=dotHtml+el.textContent.trim();
+  } else {
+    labelEl.className='csel-placeholder';
+    labelEl.textContent='— Selecionar —';
+  }
+  closeCsel();
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('cselZonaWrap');
+  if(wrap&&!wrap.contains(e.target)) closeCsel();
+});
+
+
+function toggleCselEdit(){
+  var trigger=document.getElementById('cselEditZonaTrigger');
+  var dropdown=document.getElementById('cselEditZonaDropdown');
+  if(dropdown.classList.contains('open')){ closeCselEdit(); return; }
+  trigger.classList.add('open');
+  dropdown.classList.add('open');
+}
+function closeCselEdit(){
+  var t=document.getElementById('cselEditZonaTrigger');
+  var d=document.getElementById('cselEditZonaDropdown');
+  if(t) t.classList.remove('open');
+  if(d) d.classList.remove('open');
+}
+function selectCselEdit(el){
+  var val=el.dataset.val;
+  document.getElementById('ef_zona').value=val;
+  document.querySelectorAll('#cselEditZonaScroll .csel-opt').forEach(function(o){ o.classList.remove('selected'); });
+  var labelEl=document.getElementById('cselEditZonaLabel');
+  if(val){
+    el.classList.add('selected');
+    var dot=el.querySelector('.csel-dot');
+    var dotHtml=dot?'<span class="csel-dot" style="'+dot.getAttribute('style')+'"></span>':'';
+    labelEl.className='csel-value';
+    labelEl.innerHTML=dotHtml+el.textContent.trim();
+  } else {
+    labelEl.className='csel-placeholder';
+    labelEl.textContent='— Selecionar —';
+  }
+  closeCselEdit();
+}
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('cselEditZonaWrap');
+  if(wrap&&!wrap.contains(e.target)) closeCselEdit();
+});
+
+/* ── NAV & DRAWER ── */
+function navTo(url){
+  document.getElementById('loadingOverlay').classList.add('open');
+  setTimeout(function(){ try{ window.top.location.href=url; }catch(e){ window.location.href=url; } },50);
+}
+var drawerOpen=false;
+function toggleDrawer(){ drawerOpen?closeDrawer():openDrawer(); }
+function openDrawer(){ drawerOpen=true; document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('hamburger').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer(){ drawerOpen=false; document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('hamburger').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ fecharModal(); fecharDetalhe(); fecharFiltrosModal(); fecharConfirm(); closeDrawer(); } });
+
+/* ── INIT ── */
+setStarCreate(3);
+carregarRestaurantes();
+  </script>
+</body>
+
+</html>

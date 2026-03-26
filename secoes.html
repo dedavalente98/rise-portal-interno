@@ -1,0 +1,1101 @@
+<script>
+  /* =========================================================
+   TOGGLE E CARREGAMENTO DE SECÇÕES
+   ========================================================= */
+function toggleSecao(id){
+  var el = document.getElementById(id);
+  var show = (el.style.display === "" || el.style.display === "none");
+  el.style.display = show ? "block" : "none";
+
+  var loaded = el.dataset.loaded || "0";
+  if (show && loaded === "0") {
+    carregarSecao(id);
+    el.dataset.loaded = "1";
+  }
+}
+
+function carregarSecao(id){
+  if(id==="sec-geral")          carregarSecaoGeral();
+  if(id==="sec-alimentacao")    carregarSecaoAlimentacao();
+  if(id==="sec-alojamento")     carregarSecaoAlojamento();
+  if(id==="sec-freelancers")    carregarSecaoFreelancers();
+  if(id==="sec-subcontratados") carregarSecaoSubcontratados();
+  if(id==="sec-viaturas")       carregarSecaoViaturas();
+  if(id==="sec-equipamento")    carregarSecaoEquipamento(); // ← ESTA LINHA ESTAVA EM FALTA
+
+}
+
+/* =========================================================
+   SECÇÃO — INFORMAÇÕES GERAIS
+   ========================================================= */
+function carregarSecaoGeral(){
+  var body = document.querySelector('#sec-geral');
+  body.innerHTML = `
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label">Nº do Projeto <span style="color:red;">*</span></label>
+        <input class="form-control" name="ID_Projeto" placeholder="C0001" pattern="C.*" required>
+        <div class="invalid-feedback">O Nº do Projeto é obrigatório e deve começar com "C".</div>
+      </div>
+      <div class="col-md-8">
+        <label class="form-label">Local</label>
+        <input class="form-control" name="Local">
+      </div>
+      <div class="col-12">
+        <label class="form-label">Nome do Evento</label>
+        <input class="form-control" name="Nome_do_Evento">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Dia de Início</label>
+        <input type="date" class="form-control" name="Dia_Inicio">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Dia de Fim</label>
+        <input type="date" class="form-control" name="Dia_Fim">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Rigging (nº pessoas)</label>
+        <input type="number" class="form-control" name="Rigging_Nr">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Vídeo (nº pessoas)</label>
+        <input type="number" class="form-control" name="Video_Nr">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Som (nº pessoas)</label>
+        <input type="number" class="form-control" name="Som_Nr">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Iluminação (nº pessoas)</label>
+        <input type="number" class="form-control" name="Iluminacao_Nr">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Estruturas (nº pessoas)</label>
+        <input type="number" class="form-control" name="Estruturas_Nr">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label">Freelancers (nº pessoas)</label>
+        <input type="number" class="form-control" name="Freelancers_Nr" onchange="sincronizarFreelancers(this.value)">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Subcontratados (nº pessoas)</label>
+        <input type="number" class="form-control" name="Subcontratados_Nr" onchange="sincronizarSubcontratados(this.value)">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Status do Planeamento</label>
+        <select class="form-select" name="Status_Planeamento">
+          <option>Em Curso</option>
+          <option>Finalizado</option>
+          <option>Cancelado</option>
+        </select>
+      </div>
+    </div>
+  `;
+
+  // Bloquear data de fim para ser >= data de início
+var inputInicio = document.querySelector("[name='Dia_Inicio']");
+var inputFim    = document.querySelector("[name='Dia_Fim']");
+
+if (inputInicio && inputFim) {
+  inputInicio.addEventListener('change', function() {
+    inputFim.min = this.value;
+    if (inputFim.value && inputFim.value < this.value) {
+      inputFim.value = '';
+    }
+  });
+}
+}
+
+/* =========================================================
+   SECÇÃO — ALIMENTAÇÃO
+   ========================================================= */
+function carregarSecaoAlimentacao(){
+  var body = document.querySelector('#sec-alimentacao');
+  body.innerHTML = `
+    <div class="form-check mb-3">
+      <input type="checkbox" class="form-check-input" id="Tem_Alimentacao">
+      <label for="Tem_Alimentacao" class="form-check-label">É necessário Alimentação?</label>
+    </div>
+    <div id="alimContainer" style="display:none;">
+      <div class="section-toolbar">
+        <h6>Locais de Alimentação</h6>
+        <button type="button" class="btn btn-soft-primary btn-sm" onclick="addAlimLocal()">+ Local</button>
+      </div>
+      <div id="alimLocais"></div>
+    </div>
+  `;
+
+  document.getElementById("Tem_Alimentacao").addEventListener("change", () => {
+    document.getElementById("alimContainer").style.display =
+      document.getElementById("Tem_Alimentacao").checked ? "block" : "none";
+  });
+
+  window.addAlimLocal = function(){
+    var locais = document.getElementById("alimLocais");
+    var bloco = document.createElement("div");
+    bloco.className = "bloco";
+    var id = Math.random().toString(36).slice(2);
+
+    bloco.innerHTML = `
+      <div class="item-row">
+        <select class="form-select" id="local_${id}">
+          <option>Refeitório</option>
+          <option>Restaurante</option>
+        </select>
+        <input class="form-control" id="resto_${id}" placeholder="Nome do Restaurante" style="display:none;">
+        <button type="button" class="btn-remove" onclick="this.closest('.bloco').remove()">Remover Local</button>
+      </div>
+      <div id="local-rest-wrap_${id}" style="display:none;position:relative;margin-top:8px;">
+        <input class="form-control" id="local_rest_${id}" placeholder="Pesquisar localização..."
+          autocomplete="off" oninput="pesquisarLocalRestaurante(this.value, '${id}')">
+        <div id="sugestoes-rest-${id}" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:8px;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+      </div>
+      <div class="section-toolbar mt-2">
+        <h6>Dias</h6>
+        <button type="button" class="btn btn-soft-primary btn-xs" onclick="addAlimDia('${id}')">+ Dia</button>
+      </div>
+      <div id="dias_${id}"></div>
+    `;
+
+    locais.appendChild(bloco);
+
+    var select = bloco.querySelector(`#local_${id}`);
+    var resto  = bloco.querySelector(`#resto_${id}`);
+    var localRestWrap = bloco.querySelector(`#local-rest-wrap_${id}`);
+
+    select.addEventListener("change", (ev) => {
+      var isRestaurante = ev.target.value === "Restaurante";
+      resto.style.display = isRestaurante ? "block" : "none";
+      localRestWrap.style.display = isRestaurante ? "block" : "none";
+    });
+
+    // Adiciona automaticamente o primeiro dia só se as datas estiverem preenchidas
+    var { inicio, fim } = getDatasEvento();
+    if (inicio && fim) {
+      addAlimDia(id);
+    }
+  };
+
+  window.addAlimDia = function(parentId){
+    var container = document.getElementById("dias_" + parentId);
+    var row = document.createElement("div");
+    row.className = "item-row";
+
+    // Forçar carregar secção geral se ainda não foi carregada
+    var secGeral = document.getElementById('sec-geral');
+    if (secGeral.dataset.loaded === "0") { carregarSecao('sec-geral'); secGeral.dataset.loaded = "1"; }
+
+    var { inicio, fim } = getDatasEvento();
+    if (!inicio || !fim) {
+      mostrarErro("Por favor, preencha primeiro as datas do evento na secção 'Informações Gerais'.");
+      return;
+    }
+
+    var minDate = somarDias(inicio, -1);
+    var maxDate = somarDias(fim, 1);
+
+    row.innerHTML = `
+      <input type="date" class="form-control"
+        ${minDate ? `min="${minDate}"` : ""}
+        ${maxDate ? `max="${maxDate}"` : ""}>
+      <input type="number" class="form-control" placeholder="Pessoas" min="0">
+      <label class="check-inline"><input type="checkbox"> Almoço</label>
+      <label class="check-inline"><input type="checkbox"> Jantar</label>
+      <label class="check-inline"><input type="checkbox"> Reservado</label>
+      <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove()">Remover</button>
+    `;
+
+    container.appendChild(row);
+  };
+}
+
+/* =========================================================
+   SECÇÃO — ALOJAMENTO
+   ========================================================= */
+function carregarSecaoAlojamento(){
+  var body = document.querySelector('#sec-alojamento');
+  body.innerHTML = `
+    <div class="form-check mb-3">
+      <input type="checkbox" id="Tem_Alojamento" class="form-check-input">
+      <label class="form-check-label" for="Tem_Alojamento">É necessário Alojamento?</label>
+    </div>
+    <div id="alojContainer" style="display:none;">
+      <div class="bloco">
+        <div class="row g-2 mb-3">
+          <div class="col-md-6">
+            <label class="form-label">Nome do Alojamento</label>
+            <input class="form-control" name="Nome_Alojamento">
+          </div>
+        <div class="col-md-6" style="position:relative;">
+          <label class="form-label">Local do Alojamento</label>
+          <input class="form-control" name="Local_Alojamento" id="input-local-alojamento"
+          autocomplete="off" placeholder="Pesquisar localização..."
+          oninput="pesquisarLocalAlojamento(this.value)">
+          <div id="sugestoes-alojamento" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #d1d5db;border-radius:8px;          z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.1);margin-top:4px;max-height:200px;overflow-y:auto;"></div>
+        </div>
+        </div>
+        <div class="section-toolbar">
+          <h6>Períodos</h6>
+          <button type="button" class="btn btn-soft-primary btn-sm" onclick="addAlojPeriodo()">+ Período</button>
+        </div>
+        <div id="alojPeriodos"></div>
+        <div class="check-group mt-3">
+          <div class="check-inline">
+            <input type="checkbox" id="alojReserv" name="Alojamento_Reservado">
+            <label for="alojReserv">Alojamento Reservado</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  document.querySelector("#Tem_Alojamento").addEventListener("change", () => {
+    document.querySelector("#alojContainer").style.display =
+      document.querySelector("#Tem_Alojamento").checked ? "block" : "none";
+  });
+
+  window.addAlojPeriodo = function(){
+    var container = document.getElementById("alojPeriodos");
+    var row = document.createElement("div");
+    row.className = "item-row";
+
+    var secGeral = document.getElementById('sec-geral');
+    if (secGeral.dataset.loaded === "0") { carregarSecao('sec-geral'); secGeral.dataset.loaded = "1"; }
+
+    var { inicio, fim } = getDatasEvento();
+    if (!inicio || !fim) {
+      mostrarErro("Por favor, preencha primeiro as datas do evento na secção 'Informações Gerais'.");
+      return;
+    }
+
+    var minDate = somarDias(inicio, -1);
+    var maxDate = somarDias(fim, 1);
+
+    row.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px; flex:1;">
+        <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Check in</label>
+        <input type="date" class="form-control" name="Checkin"
+          ${minDate ? `min="${minDate}"` : ""}
+          ${maxDate ? `max="${maxDate}"` : ""}>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px; flex:1;">
+        <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Check out</label>
+        <input type="date" class="form-control" name="Checkout"
+          ${minDate ? `min="${minDate}"` : ""}
+          ${maxDate ? `max="${maxDate}"` : ""}>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Pessoas</label>
+        <input type="number" class="form-control" name="Nr_Pessoas_Alojamento" min="0" style="width:90px;">
+      </div>
+      <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove()">Remover</button>
+    `;
+
+    container.appendChild(row);
+  };
+}
+
+/* =========================================================
+   SECÇÃO — FREELANCERS
+   ========================================================= */
+function carregarSecaoFreelancers(){
+  var body = document.querySelector('#sec-freelancers');
+  body.innerHTML = `
+    <div class="form-check mb-3">
+      <input type="checkbox" id="Tem_Freelancer" class="form-check-input">
+      <label class="form-check-label" for="Tem_Freelancer">É necessário Freelancers?</label>
+    </div>
+    <div id="freeContainer" style="display:none;">
+      <div class="section-toolbar">
+        <h6>Freelancers</h6>
+        <button type="button" class="btn btn-soft-primary btn-sm" onclick="addFree()">+ Freelancer</button>
+      </div>
+      <div id="listaFree"></div>
+      <div class="mt-3">
+        <label class="form-label d-block mb-1">Freelancers Confirmados</label>
+        <span id="badgeFree" class="state-badge state-off"><span class="dot">•</span> Não Confirmado</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("Tem_Freelancer").addEventListener("change", () => {
+    document.getElementById("freeContainer").style.display =
+      document.getElementById("Tem_Freelancer").checked ? "block" : "none";
+    updateFreelancersBadge();
+  });
+
+  window.addFree = function(){
+    var lista = document.getElementById("listaFree");
+    var confirmados = [...lista.querySelectorAll("select")].filter(s => s.value === "Confirmado").length;
+    var nrMaximo = parseInt(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+
+    if (nrMaximo > 0 && confirmados >= nrMaximo) {
+      mostrarErro(`Já tens ${nrMaximo} freelancer(s) confirmado(s). Não é possível adicionar mais.`);
+      return;
+    }
+
+    var row = document.createElement("div");
+    row.className = "item-row";
+    var selId = "selFree_" + Math.random().toString(36).slice(2);
+
+    row.innerHTML = `
+      <input class="form-control" placeholder="Nome do Freelancer">
+      <select class="form-select" id="${selId}">
+        <option>Em análise</option>
+        <option>Confirmado</option>
+        <option>Rejeitado</option>
+      </select>
+      <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove(); updateFreelancersBadge();">Remover</button>
+    `;
+
+    lista.appendChild(row);
+    row.querySelector("#" + selId).addEventListener("change", updateFreelancersBadge);
+    updateFreelancersBadge();
+  };
+
+  window.updateFreelancersBadge = function(){
+    var selects = document.querySelectorAll("#listaFree select");
+    var badge = document.getElementById("badgeFree");
+    var nrMaximo = parseInt(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+    var confirmados = [...selects].filter(s => s.value === "Confirmado").length;
+
+    if (nrMaximo > 0 && confirmados > nrMaximo) {
+      mostrarErro(`Atenção: já tens ${confirmados} freelancers confirmados, mas o limite é ${nrMaximo}.`);
+    }
+
+    selects.forEach(sel => {
+      sel.classList.remove("select-green", "select-red");
+      if (sel.value === "Confirmado") sel.classList.add("select-green");
+      else if (sel.value === "Rejeitado") sel.classList.add("select-red");
+    });
+
+    if (selects.length === 0) { setBadgeState(badge, false); return; }
+    var all = nrMaximo > 0 ? confirmados === nrMaximo : [...selects].every(s => s.value === "Confirmado");
+    setBadgeState(badge, all);
+  };
+
+  if (window._pendingFreelancersNr) {
+    var nr = window._pendingFreelancersNr;
+    window._pendingFreelancersNr = null;
+    sincronizarFreelancers(nr);
+  }
+}
+
+/* =========================================================
+   SECÇÃO — SUBCONTRATADOS
+   ========================================================= */
+function carregarSecaoSubcontratados(){
+  var body = document.querySelector('#sec-subcontratados');
+  body.innerHTML = `
+    <div class="form-check mb-3">
+      <input type="checkbox" id="Tem_Subcontratado" class="form-check-input">
+      <label class="form-check-label" for="Tem_Subcontratado">É necessário Subcontratados?</label>
+    </div>
+    <div id="subContainer" style="display:none;">
+      <div class="section-toolbar">
+        <h6>Subcontratados</h6>
+        <button type="button" class="btn btn-soft-primary btn-sm" onclick="addSub()">+ Subcontratado</button>
+      </div>
+      <div id="listaSub"></div>
+      <div class="mt-3">
+        <label class="form-label d-block mb-1">Subcontratados Confirmados</label>
+        <span id="badgeSub" class="state-badge state-off"><span class="dot">•</span> Não Confirmado</span>
+      </div>
+    </div>
+  `;
+
+  document.getElementById("Tem_Subcontratado").addEventListener("change", () => {
+    document.getElementById("subContainer").style.display =
+      document.getElementById("Tem_Subcontratado").checked ? "block" : "none";
+    updateSubcontratadosBadge();
+  });
+
+  window.addSub = function(){
+    var lista = document.getElementById("listaSub");
+    var confirmados = [...lista.querySelectorAll("select")].filter(s => s.value === "Confirmado").length;
+    var nrMaximo = parseInt(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+
+    if (nrMaximo > 0 && confirmados >= nrMaximo) {
+      mostrarErro(`Já tens ${nrMaximo} subcontratado(s) confirmado(s). Não é possível adicionar mais.`);
+      return;
+    }
+
+    var row = document.createElement("div");
+    row.className = "item-row";
+    var selId = "selSub_" + Math.random().toString(36).slice(2);
+
+    row.innerHTML = `
+      <input class="form-control" placeholder="Nome do Subcontratado">
+      <select class="form-select" id="${selId}">
+        <option>Em análise</option>
+        <option>Confirmado</option>
+        <option>Rejeitado</option>
+      </select>
+      <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove(); updateSubcontratadosBadge();">Remover</button>
+    `;
+
+    lista.appendChild(row);
+    row.querySelector("#" + selId).addEventListener("change", updateSubcontratadosBadge);
+    updateSubcontratadosBadge();
+  };
+
+  window.updateSubcontratadosBadge = function(){
+    var selects = document.querySelectorAll("#listaSub select");
+    var badge = document.getElementById("badgeSub");
+    var nrMaximo = parseInt(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+    var confirmados = [...selects].filter(s => s.value === "Confirmado").length;
+
+    if (nrMaximo > 0 && confirmados > nrMaximo) {
+      mostrarErro(`Atenção: já tens ${confirmados} subcontratados confirmados, mas o limite é ${nrMaximo}.`);
+    }
+
+    selects.forEach(sel => {
+      sel.classList.remove("select-green", "select-red");
+      if (sel.value === "Confirmado") sel.classList.add("select-green");
+      else if (sel.value === "Rejeitado") sel.classList.add("select-red");
+    });
+
+    if (selects.length === 0) { setBadgeState(badge, false); return; }
+    var all = nrMaximo > 0 ? confirmados === nrMaximo : [...selects].every(s => s.value.trim() === "Confirmado");
+    setBadgeState(badge, all);
+  };
+
+  if (window._pendingSubcontratadosNr) {
+    var nr = window._pendingSubcontratadosNr;
+    window._pendingSubcontratadosNr = null;
+    sincronizarSubcontratados(nr);
+  }
+}
+
+/* =========================================================
+   SECÇÃO — VIATURAS
+   ========================================================= */
+function carregarSecaoViaturas(){
+  var body = document.querySelector('#sec-viaturas');
+  body.innerHTML = `
+    <div class="section-toolbar">
+      <h6>Viaturas</h6>
+      <button type="button" class="btn btn-soft-primary btn-sm" onclick="addVia()">+ Viatura</button>
+    </div>
+    <div id="listaVia"></div>
+    <div class="check-group mt-2">
+      <div class="check-inline">
+        <input type="checkbox" id="EstacReserv">
+        <label for="EstacReserv">Estacionamento Reservado?</label>
+      </div>
+    </div>
+  `;
+
+  window.addVia = function(){
+    var lista = document.getElementById("listaVia");
+    var row = document.createElement("div");
+    row.className = "item-row";
+
+    var todasOpcoes = ["Jumper", "Boxer", "Partner", "Master", "Iveco", "Peugeot 208"];
+    var jaSeleccionadas = [...lista.querySelectorAll("select")].map(s => s.value);
+    var disponiveis = todasOpcoes.filter(o => !jaSeleccionadas.includes(o));
+
+    if (disponiveis.length === 0) { mostrarErro("Todas as viaturas já foram adicionadas."); return; }
+
+    row.innerHTML = `
+      <select class="form-select">
+        ${disponiveis.map(o => `<option>${o}</option>`).join("")}
+      </select>
+      <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove(); atualizarDropdownsViaturas();">Remover</button>
+    `;
+
+    lista.appendChild(row);
+    atualizarDropdownsViaturas();
+  };
+}
+
+/* =========================================================
+   HELPERS — VIATURAS, BADGE, DATAS
+   ========================================================= */
+window.atualizarDropdownsViaturas = function(){
+  var todasOpcoes = ["Jumper", "Boxer", "Partner", "Master", "Iveco", "Peugeot 208"];
+  var selects = [...document.querySelectorAll("#listaVia select")];
+  selects.forEach((sel, i) => {
+    var valorAtual = sel.value;
+    var outrasSeleccionadas = selects.filter((_, j) => j !== i).map(s => s.value);
+    var opcoes = todasOpcoes.filter(o => o === valorAtual || !outrasSeleccionadas.includes(o));
+    sel.innerHTML = opcoes.map(o => `<option ${o === valorAtual ? 'selected' : ''}>${o}</option>`).join("");
+  });
+};
+
+window.setBadgeState = function(badge, ok){
+  badge.classList.remove("state-ok", "state-off");
+  if(ok){
+    badge.classList.add("state-ok");
+    badge.innerHTML = `<span class="dot">•</span> Confirmado`;
+  } else {
+    badge.classList.add("state-off");
+    badge.innerHTML = `<span class="dot">•</span> Não Confirmado`;
+  }
+};
+
+function getDatasEvento(){
+  return {
+    inicio: document.querySelector("[name='Dia_Inicio']")?.value || "",
+    fim:    document.querySelector("[name='Dia_Fim']")?.value    || ""
+  };
+}
+
+function somarDias(dataStr, dias){
+  if (!dataStr) return "";
+  var parts = dataStr.split("-");
+  var d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+  d.setDate(d.getDate() + dias);
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, "0");
+  var dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function mostrarErro(mensagem){
+  var cardErro = document.getElementById('cardErro');
+  document.getElementById('mensagemErro').textContent = mensagem;
+  cardErro.style.display = 'flex';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function fecharCardErro(){
+  document.getElementById('cardErro').style.display = 'none';
+}
+
+/* =========================================================
+   RECOLHER DADOS DO FORMULÁRIO
+   ========================================================= */
+function recolherDadosProjeto(){
+  var projeto = {
+    ID_Projeto:               document.querySelector("[name='ID_Projeto']")?.value || "",
+    Local:                    document.querySelector("[name='Local']")?.value || "",
+    Nome_do_Evento:           document.querySelector("[name='Nome_do_Evento']")?.value || "",
+    Dia_Inicio:               document.querySelector("[name='Dia_Inicio']")?.value || "",
+    Dia_Fim:                  document.querySelector("[name='Dia_Fim']")?.value || "",
+    Rigging_Nr:               Number(document.querySelector("[name='Rigging_Nr']")?.value || 0),
+    Video_Nr:                 Number(document.querySelector("[name='Video_Nr']")?.value || 0),
+    Som_Nr:                   Number(document.querySelector("[name='Som_Nr']")?.value || 0),
+    Iluminacao_Nr:            Number(document.querySelector("[name='Iluminacao_Nr']")?.value || 0),
+    Estruturas_Nr:            Number(document.querySelector("[name='Estruturas_Nr']")?.value || 0),
+    Freelancers_Nr:           Number(document.querySelector("[name='Freelancers_Nr']")?.value || 0),
+    Subcontratados_Nr:        Number(document.querySelector("[name='Subcontratados_Nr']")?.value || 0),
+    Estacionamento_Reservado: document.querySelector("#EstacReserv")?.checked || false,
+    Status_Planeamento:       document.querySelector("[name='Status_Planeamento']")?.value || ""
+  };
+
+  var alimentacao = [];
+if (document.getElementById("Tem_Alimentacao")?.checked) {
+  document.querySelectorAll("#alimLocais .bloco").forEach(bloco => {
+    var local = bloco.querySelector("select").value;
+    var nomeRest = bloco.querySelector("input[placeholder='Nome do Restaurante']")?.value || "";
+    var localRest = bloco.querySelector("[id^='local_rest_']")?.value || "";
+    var dias = bloco.querySelector("[id^='dias_']").querySelectorAll(".item-row");
+    dias.forEach(row => {
+      var inputs = row.querySelectorAll("input");
+      alimentacao.push({
+        Local: local,
+        Nome_Restaurante: nomeRest,
+        Local_Restaurante: localRest,
+        Dia: inputs[0].value,
+        Nr_Pessoas: Number(inputs[1].value || 0),
+        Almoco: inputs[2].checked,
+        Jantar: inputs[3].checked,
+        Reservado: inputs[4].checked
+      });
+    });
+  });
+}
+
+  var alojamento = null;
+  if (document.querySelector("#Tem_Alojamento")?.checked) {
+    var periodos = [];
+    document.querySelectorAll("#alojPeriodos .item-row").forEach(row => {
+      var inputs = row.querySelectorAll("input[type='date']");
+      var pessoas = row.querySelector("input[type='number']");
+      periodos.push({
+        Checkin: inputs[0]?.value || "",
+        Checkout: inputs[1]?.value || "",
+        Nr_Pessoas_Alojamento: Number(pessoas?.value || 0)
+      });
+    });
+    alojamento = {
+      Nome_Alojamento:      document.querySelector("[name='Nome_Alojamento']")?.value || "",
+      Local_Alojamento:     document.querySelector("[name='Local_Alojamento']")?.value || "",
+      Alojamento_Reservado: document.querySelector("[name='Alojamento_Reservado']")?.checked || false,
+      periodos
+    };
+  }
+
+  var freelancers = [];
+  if (document.getElementById("Tem_Freelancer")?.checked) {
+    document.querySelectorAll("#listaFree .item-row").forEach(row => {
+      freelancers.push({
+        Nome_Freelancer:      row.querySelector("input").value,
+        Freelancer_Confirmado: row.querySelector("select").value.trim()
+      });
+    });
+  }
+
+  var subcontratados = [];
+  if (document.getElementById("Tem_Subcontratado")?.checked) {
+    document.querySelectorAll("#listaSub .item-row").forEach(row => {
+      subcontratados.push({
+        Nome_Subcontratado:      row.querySelector("input").value,
+        Subcontratado_Confirmado: row.querySelector("select").value.trim()
+      });
+    });
+  }
+
+  var viaturas = [];
+  document.querySelectorAll("#listaVia .item-row").forEach(row => {
+    viaturas.push({ Viatura: row.querySelector("select").value });
+  });
+
+  return { projeto, alimentacao, alojamento, freelancers, subcontratados, viaturas };
+}
+
+/* =========================================================
+   SINCRONIZAR FREELANCERS E SUBCONTRATADOS
+   ========================================================= */
+window.sincronizarFreelancers = function(valor){
+  var nr = parseInt(valor) || 0;
+  if (nr <= 0) return;
+  var checkbox = document.getElementById("Tem_Freelancer");
+  if (!checkbox) { window._pendingFreelancersNr = nr; return; }
+  if (!checkbox.checked) { checkbox.checked = true; checkbox.dispatchEvent(new Event("change")); }
+  setTimeout(() => _preencherLinhasFreelancers(nr), 50);
+};
+
+function _preencherLinhasFreelancers(nr){
+  var lista = document.getElementById("listaFree");
+  if (!lista) return;
+  var atual = lista.querySelectorAll(".item-row").length;
+  if (nr > atual) {
+    for (var i = 0; i < nr - atual; i++) addFree();
+  } else if (nr < atual) {
+    var linhas = lista.querySelectorAll(".item-row");
+    for (var i = linhas.length - 1; i >= nr; i--) linhas[i].remove();
+    updateFreelancersBadge();
+  }
+}
+
+window.sincronizarSubcontratados = function(valor){
+  var nr = parseInt(valor) || 0;
+  if (nr <= 0) return;
+  var checkbox = document.getElementById("Tem_Subcontratado");
+  if (!checkbox) { window._pendingSubcontratadosNr = nr; return; }
+  if (!checkbox.checked) { checkbox.checked = true; checkbox.dispatchEvent(new Event("change")); }
+  setTimeout(() => _preencherLinhasSub(nr), 50);
+};
+
+function _preencherLinhasSub(nr){
+  var listaSub = document.getElementById("listaSub");
+  if (!listaSub) return;
+  var atual = listaSub.querySelectorAll(".item-row").length;
+  if (nr > atual) {
+    for (var i = 0; i < nr - atual; i++) addSub();
+  } else if (nr < atual) {
+    var linhas = listaSub.querySelectorAll(".item-row");
+    for (var i = linhas.length - 1; i >= nr; i--) linhas[i].remove();
+    updateSubcontratadosBadge();
+  }
+}
+
+/* =========================================================
+   AUTOCOMPLETE — via google.script.run (funciona em criar e editar)
+   ========================================================= */
+var timeoutAlojamento = null;
+
+function pesquisarLocalAlojamento(valor) {
+  clearTimeout(timeoutAlojamento);
+  var sugestoes = document.getElementById('sugestoes-alojamento');
+  if (!sugestoes) return;
+  if (!valor || valor.length < 3) { sugestoes.style.display = 'none'; return; }
+  timeoutAlojamento = setTimeout(function() {
+
+    // ADICIONA AQUI:
+    sugestoes.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:#6b7280;">🔍 A pesquisar...</div>';
+    sugestoes.style.display = 'block';
+
+    google.script.run
+      .withSuccessHandler(function(json) {
+        var resultados = JSON.parse(json);
+        if (!resultados.length) { sugestoes.style.display = 'none'; return; }
+        sugestoes.innerHTML = resultados.map(function(r) {
+          return '<div onclick="selecionarLocalAlojamento(\'' + r.display_name.replace(/'/g, "\\'") + '\')" ' +
+            'style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f3f5;" ' +
+            'onmouseover="this.style.background=\'#f3f4f6\'" onmouseout="this.style.background=\'\'">📍 ' + r.display_name + '</div>';
+        }).join('');
+        sugestoes.style.display = 'block';
+      })
+      .withFailureHandler(function() { sugestoes.style.display = 'none'; })
+      .pesquisarLocalizacao(valor);
+  }, 250);
+}
+
+function selecionarLocalAlojamento(nome) {
+  var input = document.getElementById('input-local-alojamento');
+  if (input) input.value = nome;
+  var sugestoes = document.getElementById('sugestoes-alojamento');
+  if (sugestoes) sugestoes.style.display = 'none';
+}
+
+document.addEventListener('click', function(e) {
+  var input = document.getElementById('input-local-alojamento');
+  var sugestoes = document.getElementById('sugestoes-alojamento');
+  if (!input || !sugestoes) return;
+  if (!input.contains(e.target) && !sugestoes.contains(e.target)) {
+    sugestoes.style.display = 'none';
+  }
+});
+
+var timeoutRestaurante = null;
+
+function pesquisarLocalRestaurante(valor, id) {
+  clearTimeout(timeoutRestaurante);
+  var sugestoes = document.getElementById('sugestoes-rest-' + id);
+  if (!sugestoes) return;
+  if (!valor || valor.length < 3) { sugestoes.style.display = 'none'; return; }
+  timeoutRestaurante = setTimeout(function() {
+
+    // ADICIONA AQUI:
+    sugestoes.innerHTML = '<div style="padding:10px 14px;font-size:13px;color:#6b7280;">🔍 A pesquisar...</div>';
+    sugestoes.style.display = 'block';
+    
+    google.script.run
+      .withSuccessHandler(function(json) {
+        var resultados = JSON.parse(json);
+        if (!resultados.length) { sugestoes.style.display = 'none'; return; }
+        sugestoes.innerHTML = resultados.map(function(r) {
+          return '<div onclick="selecionarLocalRestaurante(\'' + r.display_name.replace(/'/g, "\\'") + '\', \'' + id + '\')" ' +
+            'style="padding:10px 14px;cursor:pointer;font-size:13px;border-bottom:1px solid #f1f3f5;" ' +
+            'onmouseover="this.style.background=\'#f3f4f6\'" onmouseout="this.style.background=\'\'">📍 ' + r.display_name + '</div>';
+        }).join('');
+        sugestoes.style.display = 'block';
+      })
+      .withFailureHandler(function() { sugestoes.style.display = 'none'; })
+      .pesquisarLocalizacao(valor);
+  }, 250);
+}
+
+function selecionarLocalRestaurante(nome, id) {
+  var input = document.getElementById('local_rest_' + id);
+  if (input) input.value = nome;
+  var sugestoes = document.getElementById('sugestoes-rest-' + id);
+  if (sugestoes) sugestoes.style.display = 'none';
+}
+
+/* =========================================================
+   SECÇÃO — EQUIPAMENTO (Flex Rental Solutions)
+   ========================================================= */
+function carregarSecaoEquipamento(idProjetoParam) {
+  var body = document.querySelector('#sec-equipamento');
+  body.innerHTML = `
+    <div class="section-toolbar">
+      <button type="button" id="btnAdicionarEquip" class="btn btn-soft-primary btn-sm"
+              onclick="adicionarEquipamentoFlex()" style="display:none;">
+        + Adicionar Equipamento
+      </button>
+      <button type="button" id="btnAtualizarEquip" class="btn btn-soft-primary btn-sm"
+              onclick="adicionarEquipamentoFlex()" style="display:none;">
+        ↻ Atualizar Equipamento
+      </button>
+    </div>
+    <div id="equipLoading" style="padding:10px 0; color:#6b7280; font-size:13px;">
+      <span class="spinner-border spinner-border-sm me-2"></span> A verificar equipamento...
+    </div>
+    <div id="equipErro" style="display:none; padding:10px 14px; background:#fef2f2;
+         border:1px solid #fecaca; border-radius:8px; color:#991b1b; font-size:13px; margin-top:8px;"></div>
+    <div id="equipTabela" style="margin-top:12px;"></div>
+  `;
+
+  // Usar o idProjetoParam se vier, senão tentar ler do campo
+  var idProjeto = idProjetoParam || '';
+  if (!idProjeto) {
+    var nrProjeto = document.querySelector("[name='ID_Projeto']");
+    idProjeto = nrProjeto ? nrProjeto.value.trim() : '';
+  }
+
+  if (!idProjeto) {
+    document.getElementById('equipLoading').style.display = 'none';
+    document.getElementById('btnAdicionarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+    return;
+  }
+
+  google.script.run
+    .withSuccessHandler(function(linhas) {
+      document.getElementById('equipLoading').style.display = 'none';
+      if (linhas && linhas.length > 0) {
+        document.getElementById('btnAdicionarEquip').style.display = 'none';
+document.getElementById('btnAtualizarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+        renderizarTabelaEquip(linhas, true);
+      } else {
+        document.getElementById('btnAdicionarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+        document.getElementById('btnAtualizarEquip').style.display = 'none';
+      }
+    })
+    .withFailureHandler(function() {
+      document.getElementById('equipLoading').style.display = 'none';
+      document.getElementById('btnAdicionarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+    })
+    .lerEquipamentoSheet(idProjeto);
+}
+
+window.adicionarEquipamentoFlex = function() {
+  var nrProjeto = document.querySelector("[name='ID_Projeto']");
+  if (!nrProjeto || !nrProjeto.value.trim()) {
+    mostrarErroEquip("É necessário o Nº do projeto para a pesquisa no Flex.");
+    return;
+  }
+
+  var idProjeto = nrProjeto.value.trim();
+  esconderErroEquip();
+  mostrarLoadingEquip(true);
+  document.getElementById('equipTabela').innerHTML = '';
+  document.getElementById('btnAdicionarEquip').style.display = 'none';
+  document.getElementById('btnAtualizarEquip').style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(linhas) {
+      mostrarLoadingEquip(false);
+      if (!linhas || linhas.length === 0) {
+        mostrarErroEquip("Não foram encontrados itens de equipamento no Flex para este projeto.");
+        document.getElementById('btnAdicionarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+        return;
+      }
+      document.getElementById('btnAtualizarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+      renderizarTabelaEquip(linhas, true);
+
+      // ── Passo 2: escrever no ficheiro do Drive (silencioso) ──
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.ok && typeof mostrarToast === 'function') {
+            mostrarToast('✓ Equipamento sincronizado com o Drive (' + (res.total || 0) + ' itens)', 'sucesso');
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Drive sync falhou:', err.message || err);
+        })
+        .refreshEquipamentoFlex(idProjeto);
+    })
+    .withFailureHandler(function(err) {
+      mostrarLoadingEquip(false);
+      mostrarErroEquip("Erro ao carregar equipamento: " + (err.message || err));
+      document.getElementById('btnAdicionarEquip').style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+    })
+    .carregarEGravarEquipamentoFlex(idProjeto);
+};
+
+function mostrarLoadingEquip(show) {
+  var el = document.getElementById('equipLoading');
+  if (el) el.style.display = show ? 'block' : 'none';
+}
+
+function mostrarErroEquip(msg) {
+  var el = document.getElementById('equipErro');
+  if (!el) return;
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+}
+
+function esconderErroEquip() {
+  var el = document.getElementById('equipErro');
+  if (el) el.style.display = 'none';
+}
+
+function renderizarTabelaEquip(linhas, jaTem) {
+  var container = document.getElementById('equipTabela');
+  if (!container) return;
+
+  if (!jaTem) {
+    var btnAd = document.getElementById('btnAdicionarEquip');
+    var btnAt = document.getElementById('btnAtualizarEquip');
+    if (btnAd) btnAd.style.display = 'none';
+    if (btnAt) btnAt.style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+  }
+
+  var grupos = {};
+  var itensPorId = {};
+  var itensSoltos = [];
+
+  linhas.forEach(function(l) {
+  if (l.group === true) grupos[l.id] = { name: l.name, facility: l.facility || '', itens: [] };
+});
+  linhas.forEach(function(l) {
+    if (l.group === true) return;
+    // Normalizar parentId: "" ou "undefined" ou "null" → null
+    if (!l.parentId || l.parentId === 'undefined' || l.parentId === 'null') l.parentId = null;
+    itensPorId[l.id] = l;
+  });
+  // Associar filhos ao pai
+  linhas.forEach(function(l) {
+    if (l.group === true || !l.parentId) return;
+    var pai = itensPorId[l.parentId];
+    if (pai) {
+      if (!pai._children) pai._children = [];
+      pai._children.push(l);
+    }
+  });
+  // Distribuir apenas itens raiz pelos grupos
+  linhas.forEach(function(l) {
+    if (l.group === true || l.parentId) return;
+    var g = grupos[l.rootLineId];
+    if (g) g.itens.push(l);
+    else itensSoltos.push(l);
+  });
+
+  var html = '';
+  var totalItens = 0;
+
+  // ── Achatar a árvore em lista plana com nível de indentação ──
+  function achatar(item, nivel, resultado) {
+    totalItens++;
+    resultado.push({ item: item, nivel: nivel });
+    if (item._children && item._children.length > 0) {
+      item._children
+        .sort(function(a, b) { return (a.ordinal || 0) - (b.ordinal || 0); })
+        .forEach(function(filho) { achatar(filho, nivel + 1, resultado); });
+    }
+  }
+
+  function renderGrupo(nome, itens, facility) {
+    if (itens.length === 0) return '';
+    var gId = 'eg_' + Math.random().toString(36).slice(2);
+
+    // Achatar toda a árvore em ordem
+    var plano = [];
+    itens
+      .sort(function(a, b) { return (a.ordinal || 0) - (b.ordinal || 0); })
+      .forEach(function(item) { achatar(item, 0, plano); });
+
+    // Atribuir um grupo de visibilidade a cada item com filhos
+    // Os filhos de um pai com subId ficam marcados com data-parent
+    var linhasHTML = '';
+    plano.forEach(function(entry) {
+      var item  = entry.item;
+      var nivel = entry.nivel;
+      var qty   = item.quantity % 1 === 0 ? parseInt(item.quantity) : item.quantity;
+      var nota  = (item.note || '').trim();
+      var temFilhos = item._children && item._children.length > 0;
+      var subId = temFilhos ? ('esubx_' + item.id.replace(/[^a-z0-9]/gi, '_')) : '';
+      var pl    = 10 + nivel * 20;
+      var bg    = nivel > 0 ? 'background:#f9fafb;' : '';
+
+      // Calcular ancestrais para data-ancestors (para ocultar em cascata)
+      var ancestors = [];
+      var cur = item;
+      while (cur.parentId && itensPorId[cur.parentId]) {
+        var p = itensPorId[cur.parentId];
+        if (p._children && p._children.length > 0) {
+          ancestors.push('esubx_' + p.id.replace(/[^a-z0-9]/gi, '_'));
+        }
+        cur = p;
+      }
+
+      linhasHTML += '<tr' +
+        (ancestors.length ? ' class="child-of ' + ancestors.join(' ') + '" style="display:none;"' : '') +
+        '>' +
+        '<td style="padding:7px 10px 7px ' + pl + 'px;' + bg + 'border:1px solid #e5e7eb;color:#111827;font-size:.875rem;">' +
+          (temFilhos
+            ? '<span id="arr_' + subId + '" onclick="equip_toggleSub(\'' + subId + '\',\'' + gId + '\')" style="cursor:pointer;margin-right:6px;font-size:.7rem;color:#6b7280;display:inline-block;transition:transform .15s;">▶</span>'
+            : (nivel > 0 ? '<span style="margin-right:6px;color:#d1d5db;">└</span>' : '')) +
+          escHtml(item.name || '—') +
+        '</td>' +
+        '<td style="' + bg + 'padding:7px 10px;border:1px solid #e5e7eb;color:#6b7280;font-size:.875rem;">' +
+  (nota ? (nota.startsWith('http') ? '<a href="' + escHtml(nota) + '" target="_blank" style="color:#6b7280;text-decoration:underline;font-size:14px;font-family:Inter,system-ui,sans-serif;">Ver link</a>' : escHtml(nota)) : '—') +
+'</td>' +
+        '<td style="' + bg + 'padding:7px 10px;border:1px solid #e5e7eb;text-align:center;font-weight:600;color:#374151;font-size:.875rem;">' +
+          qty +
+        '</td>' +
+      '</tr>';
+    });
+
+    return '<div class="bloco" style="margin-bottom:14px;padding:0;overflow:hidden;">' +
+      '<div onclick="toggleGrupoEquip(\'' + gId + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:11px 16px;cursor:pointer;user-select:none;">' +
+        '<span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);">' + escHtml(nome) + (facility ? ' <span style="font-size:.7rem;font-weight:400;color:#9ca3af;text-transform:none;letter-spacing:0;">📍 ' + escHtml(facility) + '</span>' : '') + '</span>' +
+        '<span style="font-size:.75rem;color:#9ca3af;font-weight:500;">' + plano.length + ' item(s)</span>' +
+      '</div>' +
+      '<div id="' + gId + '" style="max-height:0;overflow:hidden;transition:max-height .25s ease;">' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' +
+          '<colgroup><col style="width:45%;"><col style="width:40%;"><col style="width:80px;"></colgroup>' +
+          '<thead><tr>' +
+            '<th style="text-align:left;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Nome</th>' +
+            '<th style="text-align:left;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Notas</th>' +
+            '<th style="width:80px;text-align:center;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Qtd.</th>' +
+          '</tr></thead>' +
+          '<tbody>' + linhasHTML + '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
+  }
+
+  Object.keys(grupos).forEach(function(gid) {
+  html += renderGrupo(grupos[gid].name, grupos[gid].itens, grupos[gid].facility || '');
+});
+if (itensSoltos.length > 0) html += renderGrupo('Outros', itensSoltos, '');
+
+  if (totalItens === 0) {
+    mostrarErroEquip("Não foram encontrados itens de equipamento no Flex para este projeto.");
+    return;
+  }
+
+  html += '<p style="font-size:12px;color:#9ca3af;margin:4px 0 0;">' + totalItens + ' item(s) carregado(s) do Flex</p>';
+  container.innerHTML = html;
+}
+
+window.toggleGrupoEquip = function(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.maxHeight = (el.style.maxHeight && el.style.maxHeight !== '0px') ? '0px' : el.scrollHeight + 'px';
+};
+
+// Toggle filhos diretos de um pai — mostra/oculta apenas o nível imediato
+window.equip_toggleSub = function(subId, gId) {
+  var arr = document.getElementById('arr_' + subId);
+  var aberto = arr && arr.style.transform === 'rotate(90deg)';
+
+  if (aberto) {
+    // Fechar: ocultar todos os descendentes (diretos e indiretos)
+    document.querySelectorAll('tr.child-of.' + subId).forEach(function(tr) {
+      tr.style.display = 'none';
+    });
+    // Fechar também os sub-toggles descendentes
+    document.querySelectorAll('tr.child-of.' + subId + ' [id^="arr_"]').forEach(function(a) {
+      a.style.transform = '';
+    });
+    if (arr) arr.style.transform = '';
+  } else {
+    // Abrir: mostrar apenas filhos diretos (que só têm este subId como último ancestral)
+    document.querySelectorAll('tr.child-of.' + subId).forEach(function(tr) {
+      var classes = Array.from(tr.classList).filter(function(c) { return c.startsWith('esubx_'); });
+      // Só mostrar se o pai imediato (último esub_ na lista) está aberto ou é este
+      var paiImediato = classes[0];
+      if (paiImediato === subId) {
+        tr.style.display = 'table-row';
+      }
+    });
+    if (arr) arr.style.transform = 'rotate(90deg)';
+  }
+
+  // Recalcular altura do grupo
+  if (gId) {
+    var grupoInner = document.getElementById(gId);
+    if (grupoInner && grupoInner.style.maxHeight && grupoInner.style.maxHeight !== '0px') {
+      grupoInner.style.maxHeight = grupoInner.scrollHeight + 'px';
+    }
+  }
+};
+
+
+// Escapa HTML para evitar XSS com nomes vindos da API
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+
+</script>

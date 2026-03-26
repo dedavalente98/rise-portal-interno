@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RISE – Status de Tickets</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--off:#f5f4f2;--off2:#edecea;
+  --black:#0a0a0a;--ink:#1a1a1a;--muted:#6b6b6b;--muted2:#9e9e9e;
+  --border:#e2e0dd;--border2:#ccc9c5;
+  --red:#d92b22;--red-light:#fdf1f0;
+  --gold:#e0a500;--gold-light:#fffdf0;
+  --green:#1a7a3f;--green-light:#edfaf2;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --nav:64px;--drawer:300px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--ink);font-family:var(--fb);overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--off2)}::-webkit-scrollbar-thumb{background:#888;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#555}
+
+/* ── NAV ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:600;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.logo-box{background:var(--black);color:var(--white);font-family:var(--fh);font-weight:800;font-size:14px;padding:5px 11px;letter-spacing:.01em}
+.logo-box .s{color:var(--red)}
+.logo-text{font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);font-family:var(--fh);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--red)}
+.uname{font-size:12px;color:rgba(255,255,255,.4);font-weight:400;font-family:var(--fb)}
+.role-badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;font-family:var(--fb)}
+.rb-admin{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-gestor{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-utilizador{background:rgba(217,43,34,.2);color:var(--red)}
+
+/* ── HAMBURGER ── */
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none;border-radius:6px;transition:background .2s;width:40px;height:40px}
+.hamburger:hover{background:rgba(255,255,255,.08)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--white);border-radius:1px;transition:transform .3s ease,opacity .3s ease}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+/* ── DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:700;pointer-events:none;transition:background .3s ease}
+.drawer-overlay.open{background:rgba(0,0,0,.25);pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:var(--drawer);background:var(--white);border-right:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:var(--nav);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:var(--black)}
+.drawer-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:6px;border-radius:6px;font-size:16px;line-height:1;transition:.2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px;font-family:var(--fb)}
+.drawer-close:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.drawer-body{flex:1;padding:8px 0;display:flex;flex-direction:column}
+.drawer-section-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:20px 20px 6px;font-family:var(--fb)}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);font-size:13px;font-weight:400;text-decoration:none;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent;font-family:var(--fb)}
+.drawer-item:hover{background:var(--off);color:var(--ink);border-left-color:var(--border2)}
+.drawer-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500}
+.drawer-item .di-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.7}
+.drawer-item.active .di-icon{opacity:1}
+.drawer-item .di-badge{font-size:9px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--off2);color:var(--muted);font-family:var(--fb)}
+.drawer-divider{height:1px;background:var(--border);margin:8px 20px}
+.drawer-footer{padding:20px;border-top:1px solid var(--border);flex-shrink:0}
+.drawer-footer-text{font-size:10px;color:var(--muted2);letter-spacing:.04em;font-family:var(--fb)}
+
+/* ── PAGE HEADER ── */
+.page-header{margin-top:var(--nav);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 52px;background:var(--off);border-bottom:1px solid var(--border);border-top:3px solid var(--red)}
+.ph-title{font-family:var(--fh);font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--black)}
+.ph-title .dot{color:var(--red)}
+.ph-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:300;font-family:var(--fb)}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;text-decoration:none;transition:.2s;letter-spacing:.02em;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#c0241c}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+.btn-dark{background:var(--red);color:#fff}.btn-dark:hover{background:#c0241c}
+.btn-save{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;background:var(--red);color:#fff;transition:.2s}
+.btn-save:hover{background:#c0241c}
+.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-cancel-edit{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--border);transition:.2s}
+.btn-cancel-edit:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+/* Botão eliminar — discreto, só vermelho no hover */
+.btn-eliminar{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:7px;font-size:11px;font-weight:600;font-family:var(--fb);cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--border);transition:.2s}
+.btn-eliminar:hover{color:#c0241c;border-color:rgba(192,36,28,.35);background:var(--red-light)}
+
+/* ── FILTERS ── */
+.filters{padding:14px 52px;display:flex;gap:10px;background:var(--white);flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.btn-filter{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--ink);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-filter:hover{border-color:var(--border2);background:var(--off)}
+.btn-filter.active{border-color:var(--border2);background:var(--off);font-weight:600}
+.btn-clear-filters{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--muted2);font-family:var(--fb);font-size:11px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-clear-filters:hover{color:var(--red);border-color:rgba(217,43,34,.2);background:var(--red-light)}
+.search-wrap{margin-left:auto;position:relative}
+.search-wrap input{background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:12px;padding:7px 14px 7px 34px;border-radius:7px;width:220px;outline:none;transition:.2s}
+.search-wrap input:focus{border-color:var(--border2);background:var(--white)}
+.search-wrap input::placeholder{color:var(--muted2)}
+.search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:.5}
+
+/* ── MODAL FILTROS ── */
+.filter-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .22s}
+.filter-modal-overlay.open{opacity:1;pointer-events:all}
+.filter-modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-width:420px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(10px) scale(.98);transition:transform .22s;overflow:hidden}
+.filter-modal-overlay.open .filter-modal{transform:translateY(0) scale(1)}
+.filter-modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.filter-modal-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--black);letter-spacing:-.02em}
+.filter-modal-close{width:30px;height:30px;border-radius:7px;background:var(--off);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.filter-modal-close:hover{background:var(--off2);color:var(--ink)}
+.filter-modal-body{padding:8px 0;overflow-y:auto;flex:1}
+.filter-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);background:var(--off);border-radius:0 0 14px 14px;flex-shrink:0}
+.fg{border-bottom:1px solid var(--border)}.fg:last-child{border-bottom:none}
+.fg-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;cursor:pointer;user-select:none;transition:background .15s;gap:12px}
+.fg-header:hover{background:var(--off)}
+.fg-header-left{display:flex;align-items:center;gap:10px}
+.fg-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-family:var(--fb);transition:color .15s}
+.fg-header:hover .fg-label{color:var(--ink)}
+.fg-active-count{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--red);color:#fff;font-family:var(--fb);display:none}
+.fg-active-count.visible{display:block}
+.fg-arrow{font-size:11px;color:var(--muted2);transition:transform .25s ease;flex-shrink:0}
+.fg.open .fg-arrow{transform:rotate(180deg)}
+.fg-body{display:none;padding:4px 24px 16px}
+.fg.open .fg-body{display:block}
+.filter-options{display:flex;flex-direction:column;gap:6px}
+.filter-option{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:.15s;user-select:none}
+.filter-option:hover{background:var(--off);border-color:var(--border2)}
+.filter-option.selected{border-color:transparent}
+.filter-option.selected.fo-analise{background:rgba(107,107,107,.07);border-color:rgba(107,107,107,.2)}
+.filter-option.selected.fo-pendente{background:rgba(224,165,0,.07);border-color:rgba(224,165,0,.2)}
+.filter-option.selected.fo-resolvido{background:rgba(26,122,63,.07);border-color:rgba(26,122,63,.2)}
+.filter-option.selected.fo-urg-alta{background:rgba(217,43,34,.07);border-color:rgba(217,43,34,.2)}
+.filter-option.selected.fo-urg-media{background:rgba(224,165,0,.07);border-color:rgba(224,165,0,.2)}
+.filter-option.selected.fo-urg-baixa{background:rgba(26,122,63,.07);border-color:rgba(26,122,63,.2)}
+.filter-option.selected.fo-sit{background:var(--off2);border-color:var(--border2)}
+.fo-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fo-label{flex:1;font-family:var(--fb);font-size:13px;font-weight:500;color:var(--ink)}
+.fo-count{font-size:10px;font-weight:700;color:var(--muted2);background:var(--off2);padding:2px 8px;border-radius:20px;font-family:var(--fb);min-width:24px;text-align:center}
+.fo-checkbox{width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;transition:.15s;font-size:10px;color:#fff}
+.filter-option.selected.fo-analise .fo-checkbox{background:var(--muted);border-color:var(--muted)}
+.filter-option.selected.fo-pendente .fo-checkbox{background:var(--gold);border-color:var(--gold)}
+.filter-option.selected.fo-resolvido .fo-checkbox{background:var(--green);border-color:var(--green)}
+.filter-option.selected.fo-urg-alta .fo-checkbox{background:var(--red);border-color:var(--red)}
+.filter-option.selected.fo-urg-media .fo-checkbox{background:var(--gold);border-color:var(--gold)}
+.filter-option.selected.fo-urg-baixa .fo-checkbox{background:var(--green);border-color:var(--green)}
+.filter-option.selected.fo-sit .fo-checkbox{background:var(--ink);border-color:var(--ink)}
+.fo-checkmark{display:none}
+.filter-option.selected .fo-checkmark{display:block;font-weight:800}
+
+/* ── MODAL DETALHE TICKET ── */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:960;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.detail-overlay.open{opacity:1;pointer-events:all}
+.detail-modal{background:var(--white);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.18);transform:translateY(16px) scale(.98);transition:transform .25s;overflow:hidden}
+.detail-overlay.open .detail-modal{transform:translateY(0) scale(1)}
+.detail-header{padding:24px 28px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.detail-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.detail-id{font-family:var(--fh);font-size:12px;font-weight:800;color:var(--muted2);letter-spacing:.08em}
+.detail-badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.detail-close-btn{width:32px;height:32px;border-radius:8px;background:var(--off);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.detail-close-btn:hover{background:var(--off2);color:var(--ink)}
+.detail-situacao{font-family:var(--fh);font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.02em;line-height:1.2}
+.detail-body{padding:0 28px 24px;overflow-y:auto;flex:1}
+.detail-section{padding-top:20px;display:flex;flex-direction:column;gap:14px}
+.detail-section:first-child{padding-top:12px}
+.detail-section:last-child{padding-bottom:0}
+.detail-section-title{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;font-family:var(--fb);padding-bottom:8px;border-bottom:1px solid var(--border)}
+.detail-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-fields.single{grid-template-columns:1fr;gap:14px}
+.detail-field{}
+.detail-field-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;font-family:var(--fb)}
+.detail-field-value{font-size:13px;font-weight:400;color:var(--ink);font-family:var(--fb);line-height:1.5;word-break:break-word}
+.detail-field-value.empty{color:var(--muted2);font-style:italic}
+.detail-field-value a{color:var(--red);text-decoration:none;word-break:break-all}
+.detail-field-value a:hover{text-decoration:underline}
+.detail-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;background:var(--white);flex-shrink:0}
+
+/* Badges */
+.badge{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:20px;white-space:nowrap;font-family:var(--fb)}
+.ba{background:var(--off2);color:var(--muted)}
+.bp{background:var(--gold-light);color:var(--gold);border:1px solid #f0d98a}
+.br{background:var(--green-light);color:var(--green);border:1px solid #a8e5c0}
+.urg-badge{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:4px 10px;border-radius:20px;white-space:nowrap;font-family:var(--fb)}
+.urg-alta{background:rgba(217,43,34,.08);color:var(--red);border:1px solid rgba(217,43,34,.2)}
+.urg-media{background:rgba(224,165,0,.08);color:var(--gold);border:1px solid rgba(224,165,0,.2)}
+.urg-baixa{background:rgba(26,122,63,.08);color:var(--green);border:1px solid rgba(26,122,63,.2)}
+.urg-na{color:var(--muted2);font-size:13px}
+
+/* ── CAMPOS EDITÁVEIS ── */
+/* Cada campo tem um .fv (view) e .fe (edit) que alternam */
+.fv{display:block}
+.fe{display:none}
+.edit-input,.edit-textarea,.edit-select{
+  width:100%;background:var(--off);border:1px solid var(--border);
+  color:var(--ink);font-family:var(--fb);font-size:13px;
+  padding:8px 12px;border-radius:8px;outline:none;transition:.2s;
+}
+.edit-input:focus,.edit-textarea:focus,.edit-select:focus{border-color:var(--border2);background:var(--white)}
+.edit-textarea{resize:vertical;min-height:72px;line-height:1.5}
+.edit-select{
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b6b'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:8px;
+  padding-right:30px;cursor:pointer;
+}
+
+/* Estado select */
+.field-estado-view{display:flex;align-items:center;gap:10px;padding:4px 0}
+.field-estado-edit{display:none;flex-direction:column;gap:10px;padding:4px 0}
+.estado-select{
+  font-size:13px;font-weight:500;letter-spacing:normal;text-transform:none;
+  font-family:var(--fb);padding:8px 32px 8px 12px;border-radius:8px;
+  border:1px solid var(--border);cursor:pointer;outline:none;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b6b'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:8px;width:100%;
+}
+.estado-select.s-analise{background-color:var(--off2);color:var(--muted)}
+.estado-select.s-pendente{background-color:var(--gold-light);color:var(--gold);border-color:#f0d98a}
+.estado-select.s-resolvido{background-color:var(--green-light);color:var(--green);border-color:#a8e5c0}
+
+.edit-feedback{font-size:11px;font-weight:600;font-family:var(--fb)}
+.edit-feedback.ok{color:var(--green)}
+.edit-feedback.err{color:var(--red)}
+
+/* ── CONFIRM ELIMINAR ── */
+.confirm-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:990;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.confirm-overlay.open{opacity:1;pointer-events:all}
+.confirm-modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-width:360px;padding:28px;box-shadow:0 20px 60px rgba(0,0,0,.2);transform:translateY(8px);transition:transform .2s}
+.confirm-overlay.open .confirm-modal{transform:translateY(0)}
+.confirm-icon{font-size:28px;margin-bottom:12px}
+.confirm-title{font-family:var(--fh);font-size:17px;font-weight:800;color:var(--black);letter-spacing:-.02em;margin-bottom:8px}
+.confirm-desc{font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:24px;font-family:var(--fb)}
+.confirm-actions{display:flex;gap:8px;justify-content:flex-end}
+
+/* ── TABLE ── */
+.table-wrap{padding:0 52px 32px;min-height:300px;flex:1}
+.table-container{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:24px}
+.ticket-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.ticket-table colgroup col:nth-child(1){width:90px}
+.ticket-table colgroup col:nth-child(2){width:140px}
+.ticket-table colgroup col:nth-child(3){width:100px}
+.ticket-table colgroup col:nth-child(4){width:150px}
+.ticket-table colgroup col:nth-child(5){width:120px}
+.ticket-table colgroup col:nth-child(6){width:150px}
+.ticket-table thead{background:var(--off)}
+.ticket-table th{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:12px 16px;border-bottom:2px solid var(--border);font-family:var(--fb);cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s,background .15s}
+.ticket-table th:hover{color:var(--ink);background:var(--off2)}
+.ticket-table th .sort-icon{display:inline-block;margin-left:5px;opacity:.25;font-style:normal;font-size:9px}
+.ticket-table th.sort-asc .sort-icon,.ticket-table th.sort-desc .sort-icon{opacity:1;color:var(--red)}
+.ticket-table th.sort-asc .sort-icon::after{content:'↑'}
+.ticket-table th.sort-desc .sort-icon::after{content:'↓'}
+.ticket-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'↕'}
+.ticket-table tbody tr{transition:background .12s;cursor:pointer}
+.ticket-table tbody tr:nth-child(even) td{background:var(--off)}
+.ticket-table tbody tr:hover td{background:#ece9e4 !important}
+.ticket-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;color:var(--ink);font-family:var(--fb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ticket-table tbody tr:last-child td{border-bottom:none}
+.trow-id{font-family:var(--fh);font-size:11px;font-weight:800;color:var(--black);letter-spacing:.02em}
+
+/* ── PAGINAÇÃO ── */
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);background:var(--off);flex-wrap:wrap;gap:10px}
+.pagination-info{font-size:12px;color:var(--muted);font-family:var(--fb)}
+.pagination-info strong{color:var(--ink);font-weight:600}
+.pagination-controls{display:flex;align-items:center;gap:4px}
+.pg-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;line-height:1}
+.pg-btn:hover:not(:disabled){background:var(--white);border-color:var(--border2);color:var(--ink)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-btn.active{background:var(--black);border-color:var(--black);color:#fff;font-weight:700}
+.pg-btn.pg-arrow{font-size:14px;font-weight:400}
+.pg-ellipsis{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;font-size:12px;color:var(--muted2);font-family:var(--fb)}
+
+/* ── MOBILE LIST ── */
+.mobile-ticket-list{display:none;flex-direction:column;gap:10px;padding:20px 24px}
+.mt-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;transition:.2s;cursor:pointer}
+.mt-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06);border-color:var(--border2)}
+.mt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.mt-id{font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted2)}
+.mt-title{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--black);font-family:var(--fb)}
+.mt-meta{font-size:11px;color:var(--muted);line-height:1.6;font-weight:300;font-family:var(--fb)}
+.mobile-pagination{display:none;align-items:center;justify-content:center;gap:4px;padding:12px 24px 20px}
+.mobile-pagination .pagination-controls{gap:4px}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(220,218,215,.75);backdrop-filter:blur(3px);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.open{opacity:1;pointer-events:all}
+.loading-logo-wrap{position:relative;width:180px;height:68px}
+.loading-logo-base{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;filter:brightness(0) opacity(.12)}
+.loading-logo-fill{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;clip-path:inset(0 100% 0 0);animation:fillRight 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fillRight{0%{clip-path:inset(0 100% 0 0)}60%{clip-path:inset(0 0% 0 0)}85%{clip-path:inset(0 0% 0 0);opacity:1}100%{clip-path:inset(0 0% 0 0);opacity:0}}
+
+/* ── FOOTER ── */
+footer{border-top:1px solid var(--border);padding:10px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted2);background:var(--white);font-family:var(--fb)}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:13px;color:var(--black)}
+.foot-logo .s{color:var(--red)}
+
+@media(max-width:900px){
+  .uname,.role-badge{display:none}
+  .page-header,.filters,.table-wrap{padding-left:24px;padding-right:24px}
+  .page-header{flex-direction:column;align-items:flex-start}
+  .search-wrap{margin-left:0;width:100%}
+  .search-wrap input{width:100%}
+  .table-wrap{display:none}
+  .mobile-ticket-list{display:flex}
+  .mobile-pagination{display:flex}
+  footer{padding:12px 24px}
+  .detail-fields{grid-template-columns:1fr}
+  .detail-header,.detail-body,.detail-footer{padding-left:20px;padding-right:20px}
+}
+</style>
+</head>
+<body>
+
+<? var WU = webappUrl; ?>
+<?
+  var userRole  = dados.sessao ? dados.sessao.role  : 'utilizador';
+  var userName  = dados.sessao ? dados.sessao.nome  : 'Utilizador';
+  var _parts = userName.trim().split(' ');
+  var userInit  = _parts[0].charAt(0).toUpperCase() + (_parts.length > 1 ? _parts[_parts.length-1].charAt(0).toUpperCase() : '');
+  var podeNovoTicket = true;
+var podeVerSheet   = (userRole === 'admin');
+var podeEliminar   = (userRole === 'admin');
+var podeEditarTicket = (userRole === 'admin' || userRole === 'gestor');
+?>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span class="di-label">Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span class="di-label">Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span class="di-label">Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span class="di-label">Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span class="di-label">Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span class="di-label">RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span class="di-label">Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span class="di-label">Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span class="di-label">Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)"><?= userName ?></div>
+    <div class="drawer-footer-text" style="margin-top:3px"><?= userRole ?> · RISE</div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-left">
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    <div class="logo" onclick="navTo('<?= WU ?>')">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span class="logo-text">Portal Interno</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="uname"><?= userName ?></span>
+    <span class="role-badge rb-<?= userRole ?>"><?= userRole ?></span>
+    <div class="avatar"><?= userInit ?></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div class="ph-left">
+    <div class="ph-title">Tickets<span class="dot">.</span></div>
+    <div class="ph-sub">Consulta o estado dos teus pedidos ao Departamento de Planeamento</div>
+  </div>
+  <div class="ph-actions">
+    <? if (podeNovoTicket) { ?>
+    <a class="btn btn-red" href="<?= formUrl ?>" target="_blank">🎫 Abrir Novo Ticket</a>
+    <? } ?>
+    <? if (podeVerSheet) { ?>
+    <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1HAbfB0Ol_3nqfIzq0vdrMSqZcUP20pK0O9e09gXrA6w" target="_blank">📊 Ver Sheet</a>
+    <? } ?>
+  </div>
+</div>
+
+<!-- FILTROS -->
+<div class="filters">
+  <button class="btn-filter" id="btnFiltrar" onclick="abrirFiltrosModal()">
+    <span class="filter-icon">⚙️</span>
+    <span id="btnFiltrarLabel">Filtrar</span>
+  </button>
+  <button class="btn-clear-filters" id="btnRemoverFiltros" onclick="removerFiltros()" style="display:none">
+    <span>✕</span> Remover filtros
+  </button>
+  <div class="search-wrap">
+    <input type="text" id="searchInput" placeholder="Pesquisar ticket..." oninput="pesquisar(this.value)">
+  </div>
+</div>
+
+<!-- MODAL FILTROS -->
+<div class="filter-modal-overlay" id="filterModalOverlay">
+  <div class="filter-modal">
+    <div class="filter-modal-header">
+      <div class="filter-modal-title">⚙️ Filtrar tickets</div>
+      <button class="filter-modal-close" onclick="fecharFiltrosModal()">✕</button>
+    </div>
+    <div class="filter-modal-body">
+      <div class="fg open" id="fg-estado">
+        <div class="fg-header" onclick="toggleFg('fg-estado')">
+          <div class="fg-header-left"><span class="fg-label">Estado do ticket</span><span class="fg-active-count" id="fgcount-estado">0</span></div>
+          <span class="fg-arrow">▼</span>
+        </div>
+        <div class="fg-body">
+          <div class="filter-options">
+            <div class="filter-option fo-analise" data-group="estado" data-val="Em Análise" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--muted)"></div><span class="fo-label">Em Análise</span><span class="fo-count" id="fcount-analise">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-pendente" data-group="estado" data-val="Pendente" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--gold)"></div><span class="fo-label">Pendente</span><span class="fo-count" id="fcount-pendente">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-resolvido" data-group="estado" data-val="Resolvido" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--green)"></div><span class="fo-label">Resolvido</span><span class="fo-count" id="fcount-resolvido">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="fg open" id="fg-urgencia">
+        <div class="fg-header" onclick="toggleFg('fg-urgencia')">
+          <div class="fg-header-left"><span class="fg-label">Urgência</span><span class="fg-active-count" id="fgcount-urgencia">0</span></div>
+          <span class="fg-arrow">▼</span>
+        </div>
+        <div class="fg-body">
+          <div class="filter-options">
+            <div class="filter-option fo-urg-alta" data-group="urgencia" data-val="Alta" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--red)"></div><span class="fo-label">Alta</span><span class="fo-count" id="fcount-urg-alta">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-urg-media" data-group="urgencia" data-val="Média" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--gold)"></div><span class="fo-label">Média</span><span class="fo-count" id="fcount-urg-media">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-urg-baixa" data-group="urgencia" data-val="Baixa" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:var(--green)"></div><span class="fo-label">Baixa</span><span class="fo-count" id="fcount-urg-baixa">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="fg open" id="fg-situacao">
+        <div class="fg-header" onclick="toggleFg('fg-situacao')">
+          <div class="fg-header-left"><span class="fg-label">Situação</span><span class="fg-active-count" id="fgcount-situacao">0</span></div>
+          <span class="fg-arrow">▼</span>
+        </div>
+        <div class="fg-body">
+          <div class="filter-options">
+            <div class="filter-option fo-sit" data-group="situacao" data-val="visita" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#8b5cf6"></div><span class="fo-label">Visita Técnica</span><span class="fo-count" id="fcount-sit-visita">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-sit" data-group="situacao" data-val="frota" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#3b82f6"></div><span class="fo-label">Frota</span><span class="fo-count" id="fcount-sit-frota">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-sit" data-group="situacao" data-val="compras" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#f97316"></div><span class="fo-label">Compras</span><span class="fo-count" id="fcount-sit-compras">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-sit" data-group="situacao" data-val="consumív" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#06b6d4"></div><span class="fo-label">Consumíveis</span><span class="fo-count" id="fcount-sit-consumiv">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-sit" data-group="situacao" data-val="sugest" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#10b981"></div><span class="fo-label">Sugestões</span><span class="fo-count" id="fcount-sit-sugest">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+            <div class="filter-option fo-sit" data-group="situacao" data-val="desconfort" onclick="toggleFilterOption(this)"><div class="fo-dot" style="background:#ef4444"></div><span class="fo-label">Desconfortos</span><span class="fo-count" id="fcount-sit-desconfort">0</span><div class="fo-checkbox"><span class="fo-checkmark">✓</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="filter-modal-footer">
+      <button class="btn btn-ghost" onclick="fecharFiltrosModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="aplicarFiltrosModal()">Aplicar filtros</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE TICKET -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div class="detail-header-top">
+        <span class="detail-id" id="dId">—</span>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="detail-badges" id="dBadges"></div>
+          <button class="detail-close-btn" onclick="fecharDetalhe()">✕</button>
+        </div>
+      </div>
+      <div class="detail-situacao" id="dSituacao">—</div>
+    </div>
+    <div class="detail-body" id="dBody"></div>
+    <div class="detail-footer" id="dFooter">
+      <!-- VIEW MODE -->
+      <div id="footerView" style="display:flex;gap:8px;align-items:center;width:100%;justify-content:space-between">
+        <div id="footerViewLeft"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="ativarEdicao()" id="dBtnEditar">✏️ Editar</button>
+          <button class="btn btn-dark" onclick="fecharDetalhe()">Fechar</button>
+        </div>
+      </div>
+      <!-- EDIT MODE -->
+      <div id="footerEdit" style="display:none;gap:8px;align-items:center;width:100%;justify-content:flex-end;flex-wrap:wrap">
+        <span class="edit-feedback" id="dEditFeedback" style="display:none"></span>
+        <button class="btn-cancel-edit" onclick="cancelarEdicao()">Cancelar</button>
+        <button class="btn-save" id="dBtnGravar" onclick="gravarTudo()">💾 Gravar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM ELIMINAR -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-modal">
+    <div class="confirm-icon">🗑️</div>
+    <div class="confirm-title">Eliminar ticket?</div>
+    <div class="confirm-desc" id="confirmDesc">Esta ação é irreversível e irá apagar o registo permanentemente da folha de cálculo.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" onclick="fecharConfirm()">Cancelar</button>
+      <button class="btn btn-red" id="confirmBtnEliminar" onclick="confirmarEliminar()">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TABELA DESKTOP -->
+<div class="table-wrap">
+  <div class="table-container">
+    <table class="ticket-table">
+      <colgroup><col><col><col><col><col><col></colgroup>
+      <thead>
+        <tr>
+          <th onclick="sortTable(0,this)"><span>ID</span><i class="sort-icon"></i></th>
+          <th onclick="sortTable(1,this)"><span>Situação</span><i class="sort-icon"></i></th>
+          <th onclick="sortTable(2,this)"><span>Urgência</span><i class="sort-icon"></i></th>
+          <th onclick="sortTable(3,this)"><span>Requisitante</span><i class="sort-icon"></i></th>
+          <th onclick="sortTable(4,this)"><span>Estado</span><i class="sort-icon"></i></th>
+          <th onclick="sortTable(5,this)"><span>Data</span><i class="sort-icon"></i></th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <? if (dados.tickets.length === 0) { ?>
+        <tr><td colspan="6" style="text-align:center;padding:48px;color:var(--muted2);font-family:var(--fb)">
+          Sem tickets registados.
+          <? if (podeNovoTicket) { ?>
+          <a href="<?= formUrl ?>" target="_blank" style="color:var(--red);font-family:var(--fb);margin-left:4px">Abrir primeiro ticket →</a>
+          <? } ?>
+        </td></tr>
+        <? } else {
+          for (var i = 0; i < dados.tickets.length; i++) {
+            var t = dados.tickets[i];
+            var bcls = t.estado === 'Em Análise' ? 'ba' : t.estado === 'Resolvido' ? 'br' : t.estado === 'Pendente' ? 'bp' : 'ba';
+            var urgCls = '';
+            var urgLower = (t.urgencia || '').toLowerCase();
+            if (urgLower.indexOf('alta') !== -1) urgCls = 'urg-alta';
+            else if (urgLower.indexOf('média') !== -1 || urgLower.indexOf('media') !== -1) urgCls = 'urg-media';
+            else if (urgLower.indexOf('baixa') !== -1) urgCls = 'urg-baixa';
+            var qStr = (t.id + ' ' + t.situacao + ' ' + t.urgencia + ' ' + t.req + ' ' + t.estado).toLowerCase().replace(/"/g,'').replace(/'/g,'');
+        ?>
+        <tr data-estado="<?= t.estado ?>"
+            data-q="<?= qStr ?>"
+            data-sort0="<?= t.id ?>"
+            data-sort1="<?= t.situacao ?>"
+            data-sort2="<?= t.urgencia ?>"
+            data-sort3="<?= t.req ?>"
+            data-sort4="<?= t.estado ?>"
+            data-sort5="<?= t.data ?>"
+            onclick="abrirDetalhe(this)">
+          <td class="trow-id"><?= t.id ?></td>
+          <td style="font-size:12px;color:var(--muted2)"><?= t.situacao ?></td>
+          <td>
+            <? if (t.urgencia && t.urgencia !== '—') { ?>
+            <span class="urg-badge <?= urgCls ?>"><?= t.urgencia ?></span>
+            <? } else { ?>
+            <span class="urg-na">—</span>
+            <? } ?>
+          </td>
+          <td><?= t.req ?></td>
+          <td><span class="badge <?= bcls ?>"><?= t.estado ?></span></td>
+          <td style="font-size:12px;color:var(--muted2)"><?= t.data ?></td>
+        </tr>
+        <? } } ?>
+      </tbody>
+    </table>
+    <div class="pagination-bar" id="paginationBar">
+      <div class="pagination-info" id="paginationInfo"></div>
+      <div class="pagination-controls" id="paginationControls"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LISTA MOBILE -->
+<div class="mobile-ticket-list" id="mobileList">
+  <? for (var j = 0; j < dados.tickets.length; j++) {
+    var tm = dados.tickets[j];
+    var bm = tm.estado === 'Em Análise' ? 'ba' : tm.estado === 'Resolvido' ? 'br' : tm.estado === 'Pendente' ? 'bp' : 'ba';
+    var urgClsM = '';
+    var urgLowerM = (tm.urgencia || '').toLowerCase();
+    if (urgLowerM.indexOf('alta') !== -1) urgClsM = 'urg-alta';
+    else if (urgLowerM.indexOf('média') !== -1 || urgLowerM.indexOf('media') !== -1) urgClsM = 'urg-media';
+    else if (urgLowerM.indexOf('baixa') !== -1) urgClsM = 'urg-baixa';
+    var qMob = (tm.id + ' ' + tm.situacao + ' ' + tm.urgencia + ' ' + tm.req).toLowerCase().replace(/"/g,'').replace(/'/g,'');
+  ?>
+  <div class="mt-card" data-estado="<?= tm.estado ?>" data-q="<?= qMob ?>" onclick="abrirDetalhe(this)">
+    <div class="mt-top">
+      <span class="mt-id"><?= tm.id ?></span>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <? if (tm.urgencia && tm.urgencia !== '—') { ?>
+        <span class="urg-badge <?= urgClsM ?>"><?= tm.urgencia ?></span>
+        <? } ?>
+        <span class="badge <?= bm ?>"><?= tm.estado ?></span>
+      </div>
+    </div>
+    <div class="mt-title"><?= tm.situacao ?></div>
+    <div class="mt-meta"><?= tm.req ?> · <?= tm.data ?></div>
+  </div>
+  <? } ?>
+</div>
+
+<div class="mobile-pagination" id="mobilePagination">
+  <div class="pagination-controls" id="mobilePaginationControls"></div>
+</div>
+
+<script>
+var TICKETS_DATA = <?!= JSON.stringify(dados.tickets) ?>;
+</script>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-base"></div>
+    <div class="loading-logo-fill"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+  <div>© 2026 RISE · a Europalco company</div>
+  <div>Departamento de Planeamento · <?= dados.dataHoje ?></div>
+</footer>
+
+<script>
+/* ── RESPONSÁVEIS ── */
+var RESPONSAVEIS = [
+  { nome: 'Bruno Domingos',  email: 'bruno.domingos@rise.pt'  },
+  { nome: 'Ruben Matos',     email: 'ruben.matos@rise.pt'     },
+  { nome: 'David Fernandes', email: 'david.fernandes@rise.pt' }
+];
+
+function emailParaNome(emailOrNome) {
+  if (!emailOrNome) return '—';
+  for (var i = 0; i < RESPONSAVEIS.length; i++) {
+    if (RESPONSAVEIS[i].email === emailOrNome || RESPONSAVEIS[i].nome === emailOrNome) return RESPONSAVEIS[i].nome;
+  }
+  return emailOrNome; /* fallback: mostra o que vier */
+}
+
+/* ── ESTADO ── */
+var activeTypes    = [];
+var pendingTypes   = [];
+var activeUrgencia = [];
+var pendingUrgencia= [];
+var activeSituacao = [];
+var pendingSituacao= [];
+var activeSearch   = '';
+var sortCol = -1;
+var sortDir = 1;
+var ticketAtivo = null;
+var podeEditar  = false;
+var podeEliminarJS = ('<?= podeEliminar ?>' === 'true');
+
+/* ── PAGINAÇÃO ── */
+var PER_PAGE    = 10;
+var currentPage = 1;
+
+function getFilteredRows() {
+  return Array.from(document.querySelectorAll('#tbody tr[data-estado]')).filter(function(r){ return r.dataset.filtered !== '0'; });
+}
+function getFilteredCards() {
+  return Array.from(document.querySelectorAll('#mobileList .mt-card')).filter(function(c){ return c.dataset.filtered !== '0'; });
+}
+function renderPagination() {
+  var rows = getFilteredRows();
+  var total = rows.length;
+  var totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * PER_PAGE;
+  var end   = Math.min(start + PER_PAGE, total);
+  /* Tabela desktop */
+  Array.from(document.querySelectorAll('#tbody tr[data-estado]')).forEach(function(r){
+    if (r.dataset.filtered === '0') { r.style.display = 'none'; return; }
+    var idx = rows.indexOf(r);
+    r.style.display = (idx >= start && idx < end) ? '' : 'none';
+  });
+  var bar = document.getElementById('paginationBar');
+  if (bar) bar.style.display = totalPages <= 1 ? 'none' : '';
+  var info = document.getElementById('paginationInfo');
+  if (info) info.innerHTML = 'A mostrar <strong>' + (total===0?0:start+1) + '–' + end + '</strong> de <strong>' + total + '</strong> tickets';
+  renderPaginationControls('paginationControls', totalPages);
+  /* Lista mobile */
+  var cards = getFilteredCards();
+  Array.from(document.querySelectorAll('#mobileList .mt-card')).forEach(function(c){
+    if (c.dataset.filtered === '0') { c.style.display = 'none'; return; }
+    var idx = cards.indexOf(c);
+    c.style.display = (idx >= start && idx < end) ? '' : 'none';
+  });
+  var mobPag = document.getElementById('mobilePagination');
+  if (mobPag) mobPag.style.display = totalPages <= 1 ? 'none' : 'flex';
+  renderPaginationControls('mobilePaginationControls', totalPages);
+}
+function renderPaginationControls(cid, totalPages) {
+  var el = document.getElementById(cid);
+  if (!el) return;
+  var html = '<button class="pg-btn pg-arrow" onclick="irParaPagina('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+'>‹</button>';
+  buildPageRange(currentPage, totalPages).forEach(function(p){
+    if (p==='…') html += '<span class="pg-ellipsis">…</span>';
+    else html += '<button class="pg-btn'+(p===currentPage?' active':'')+'" onclick="irParaPagina('+p+')">' + p + '</button>';
+  });
+  html += '<button class="pg-btn pg-arrow" onclick="irParaPagina('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+'>›</button>';
+  el.innerHTML = html;
+}
+function buildPageRange(current, total) {
+  if (total <= 7) { var a=[]; for(var i=1;i<=total;i++) a.push(i); return a; }
+  var pages=[1];
+  if (current>3) pages.push('…');
+  for(var p=Math.max(2,current-1);p<=Math.min(total-1,current+1);p++) pages.push(p);
+  if (current<total-2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+function irParaPagina(p) {
+  var totalPages = Math.max(1, Math.ceil(getFilteredRows().length / PER_PAGE));
+  if (p<1||p>totalPages) return;
+  currentPage = p;
+  renderPagination();
+}
+
+/* ── HELPERS HTML ── */
+function esc(str){ return (str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+/* Campo estático (não editável) */
+function campo(label, valor, fullWidth) {
+  var v = (valor||'').trim();
+  return '<div class="detail-field'+(fullWidth?' full':'')+'">'
+    + '<div class="detail-field-label">'+esc(label)+'</div>'
+    + '<div class="detail-field-value'+(v?'':' empty')+'">'+esc(v||'—').replace(/\n/g,'<br>')+'</div>'
+    + '</div>';
+}
+
+/* Campo com link (não editável) */
+function campoLink(label, valor) {
+  var v = (valor||'').trim();
+  if (!v) return campo(label,'');
+  return '<div class="detail-field">'
+    + '<div class="detail-field-label">'+esc(label)+'</div>'
+    + '<div class="detail-field-value"><a href="'+esc(v)+'" target="_blank" rel="noopener">Abrir link ↗</a></div>'
+    + '</div>';
+}
+
+/* Campo editável genérico: tipo = 'input' | 'textarea' | 'link' */
+function campoEditavel(label, fieldKey, valor, tipo, fullWidth) {
+  var v = (valor||'').trim();
+  var viewHtml;
+  if (tipo === 'link' && v) {
+    viewHtml = '<a href="'+esc(v)+'" target="_blank" rel="noopener">Abrir link ↗</a>';
+  } else {
+    viewHtml = '<span class="'+(v?'':'empty')+'">'+esc(v||'—').replace(/\n/g,'<br>')+'</span>';
+  }
+  var editHtml;
+  if (tipo === 'textarea') {
+    editHtml = '<textarea class="edit-textarea" id="ef_'+fieldKey+'">'+esc(v)+'</textarea>';
+  } else {
+    editHtml = '<input type="text" class="edit-input" id="ef_'+fieldKey+'" value="'+esc(v)+'">';
+  }
+  return '<div class="detail-field'+(fullWidth?' full':'')+'">'
+    + '<div class="detail-field-label">'+esc(label)+'</div>'
+    + '<div class="fv" id="fv_'+fieldKey+'"><div class="detail-field-value">'+viewHtml+'</div></div>'
+    + '<div class="fe" id="fe_'+fieldKey+'" style="display:none">'+editHtml+'</div>'
+    + '</div>';
+}
+
+/* Campo Responsável — dropdown que mostra nome, envia email */
+function campoResponsavel(valorAtual) {
+  var nome = emailParaNome(valorAtual);
+  /* Determina o email guardado para pré-selecionar */
+  var emailAtual = '';
+  for (var i=0; i<RESPONSAVEIS.length; i++) {
+    if (RESPONSAVEIS[i].email===valorAtual || RESPONSAVEIS[i].nome===valorAtual) { emailAtual=RESPONSAVEIS[i].email; break; }
+  }
+  var opts = '<option value="">—</option>';
+  RESPONSAVEIS.forEach(function(r){
+    opts += '<option value="'+esc(r.email)+'"'+(emailAtual===r.email?' selected':'')+'>'+esc(r.nome)+'</option>';
+  });
+  return '<div class="detail-field">'
+    + '<div class="detail-field-label">RESPONSÁVEL</div>'
+    + '<div class="fv" id="fv_responsavel"><div class="detail-field-value'+(nome&&nome!=='—'?'':' empty')+'">'+esc(nome)+'</div></div>'
+    + '<div class="fe" id="fe_responsavel" style="display:none"><select class="edit-select" id="ef_responsavel">'+opts+'</select></div>'
+    + '</div>';
+}
+
+/* Campo Estado */
+function corSelectEstado(val) {
+  if (val==='Pendente')  return 's-pendente';
+  if (val==='Resolvido') return 's-resolvido';
+  return 's-analise';
+}
+function aplicarCorSelect(sel) { sel.className='estado-select '+corSelectEstado(sel.value); }
+
+function campoEstado(valor) {
+  var v = (valor||'').trim();
+  if (!v||v==='—') v='';
+  var vDisplay = v||'—';
+  var bcls = v==='Em Análise'?'ba':v==='Resolvido'?'br':v==='Pendente'?'bp':'ba';
+  var selCls = corSelectEstado(v);
+  return '<div class="detail-field">'
+    + '<div class="detail-field-label">ESTADO</div>'
+    + '<div class="field-estado-view" id="estadoView"><span class="badge '+bcls+'" id="estadoBadgeInline">'+esc(vDisplay)+'</span></div>'
+    + '<div class="field-estado-edit" id="estadoEdit" style="display:none;flex-direction:column;">'
+    +   '<select id="ef_estado" class="estado-select '+selCls+'" onchange="aplicarCorSelect(this)">'
+    +     '<option value=""'+(v===''?' selected':'')+'>—</option>'
+    +     '<option value="Em Análise"'+(v==='Em Análise'?' selected':'')+'>Em Análise</option>'
+    +     '<option value="Pendente"'+(v==='Pendente'?' selected':'')+'>Pendente</option>'
+    +     '<option value="Resolvido"'+(v==='Resolvido'?' selected':'')+'>Resolvido</option>'
+    +   '</select>'
+    + '</div>'
+    + '</div>';
+}
+
+function secao(titulo, campos) {
+  var html = '<div class="detail-section">';
+  if (titulo) html += '<div class="detail-section-title">'+esc(titulo)+'</div>';
+  var i = 0;
+  while (i < campos.length) {
+    var isFull = campos[i].indexOf('"detail-field full"') !== -1;
+    var group  = [];
+    while (i < campos.length && (campos[i].indexOf('"detail-field full"') !== -1) === isFull) { group.push(campos[i]); i++; }
+    html += '<div class="detail-fields'+(isFull?' single':'')+'">'+group.join('')+'</div>';
+  }
+  html += '</div>';
+  return html;
+}
+
+/* ── ABRIR MODAL ── */
+function abrirDetalhe(el) {
+  var idEl = el.querySelector('.trow-id') || el.querySelector('.mt-id');
+  if (!idEl) return;
+  var id = idEl.textContent.trim();
+  var t = null;
+  for (var i=0; i<TICKETS_DATA.length; i++) { if (TICKETS_DATA[i].id===id) { t=TICKETS_DATA[i]; break; } }
+  if (!t) return;
+  ticketAtivo = t;
+
+  document.getElementById('dId').textContent = t.id;
+  document.getElementById('dSituacao').textContent = t.situacao;
+
+  /* Badges urgência */
+  var badges = document.getElementById('dBadges');
+  badges.innerHTML = '';
+  if (t.urgencia && t.urgencia !== '—') {
+    var urgLow = t.urgencia.toLowerCase();
+    var urgCls = urgLow.indexOf('alta')!==-1?'urg-alta':(urgLow.indexOf('média')!==-1||urgLow.indexOf('media')!==-1)?'urg-media':urgLow.indexOf('baixa')!==-1?'urg-baixa':'';
+    var ub = document.createElement('span');
+    ub.className = 'urg-badge '+urgCls;
+    ub.textContent = t.urgencia;
+    badges.appendChild(ub);
+  }
+
+  var raw = (t.situacaoRaw||t.situacao||'').toLowerCase();
+  var html = '';
+
+  if (raw.indexOf('visita') !== -1) {
+    html += secao('', [campo('Evento',t.vt_evento), campo('Data e Hora',t.vt_dataHora), campo('Local',t.vt_local), campo('Urgência',t.vt_urgencia)]);
+  } else if (raw.indexOf('frota') !== -1 || raw.indexOf('vehicle') !== -1) {
+    html += secao('', [
+      campo('Veículo', t.fr_veiculo),
+      campo('Assunto', t.fr_assunto),
+      campoEditavel('Observações',    'fr_obs',  t.fr_obs,  'textarea', true),
+      campo('Urgência', t.fr_urgencia),
+      campoEditavel('Link / Evidência','fr_link', t.fr_link, 'link',    false),
+    ]);
+  } else if (raw.indexOf('compras') !== -1 || raw.indexOf('shopping') !== -1) {
+    html += secao('', [
+      campoEditavel('Sugestão de Equipamento', 'co_sugestao', t.co_sugestao, 'textarea', true),
+      campoEditavel('Link',                    'co_link',     t.co_link,     'link',     false),
+    ]);
+  } else if (raw.indexOf('consumív') !== -1 || raw.indexOf('consumable') !== -1) {
+    html += secao('', [
+      campoEditavel('Necessidade', 'cs_falta', t.cs_falta, 'textarea', true),
+    ]);
+  } else if (raw.indexOf('sugest') !== -1 || raw.indexOf('feedback') !== -1) {
+    html += secao('', [
+      campoEditavel('Descrição', 'su_desc', t.su_desc, 'textarea', true),
+    ]);
+  } else if (raw.indexOf('desconfort') !== -1 || raw.indexOf('inconvenience') !== -1) {
+    html += secao('', [
+      campoEditavel('Descrição', 'de_desc', t.de_desc, 'textarea', true),
+    ]);
+  }
+
+  html += secao('Informação Geral', [
+    campo('Requisitante', t.req),
+    campo('Data de Envio', t.data),
+    campoResponsavel(t.responsavel),
+    campoEstado(t.estado),
+  ]);
+
+  document.getElementById('dBody').innerHTML = html;
+
+  /* Permissões */
+  var role = '<?= userRole ?>';
+  podeEditar = (role === 'admin' || role === 'gestor');
+  document.getElementById('dBtnEditar').style.display = podeEditar ? '' : 'none';
+
+  /* Botão eliminar — só aparece em view mode, só para admin/gestor */
+  var left = document.getElementById('footerViewLeft');
+  if (left) left.innerHTML = podeEliminarJS
+    ? '<button class="btn-eliminar" onclick="pedirConfirm()">🗑️ Eliminar</button>'
+    : '';
+
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharDetalhe() {
+  cancelarEdicao();
+  document.getElementById('detailOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── EDIÇÃO ── */
+function ativarEdicao() {
+  if (!ticketAtivo || !podeEditar) return;
+  /* Mostra todos os .fe, esconde todos os .fv */
+  document.querySelectorAll('#dBody .fv').forEach(function(el){ el.style.display='none'; });
+  document.querySelectorAll('#dBody .fe').forEach(function(el){ el.style.display='block'; });
+  /* Estado especial */
+  var estadoView = document.getElementById('estadoView');
+  var estadoEdit = document.getElementById('estadoEdit');
+  if (estadoView) estadoView.style.display = 'none';
+  if (estadoEdit) estadoEdit.style.display = 'flex';
+  /* Pré-seleciona valor atual no select estado */
+  var selEstado = document.getElementById('ef_estado');
+  if (selEstado) {
+    var ea = (ticketAtivo.estado||'').trim();
+    if (!ea||ea==='—') ea='';
+    selEstado.value = ea;
+    aplicarCorSelect(selEstado);
+  }
+  /* Footer */
+  document.getElementById('footerView').style.display = 'none';
+  document.getElementById('footerEdit').style.display = 'flex';
+  var fb = document.getElementById('dEditFeedback');
+  if (fb) { fb.className='edit-feedback'; fb.style.display='none'; fb.textContent=''; }
+}
+
+function cancelarEdicao() {
+  document.querySelectorAll('#dBody .fv').forEach(function(el){ el.style.display=''; });
+  document.querySelectorAll('#dBody .fe').forEach(function(el){ el.style.display='none'; });
+  var estadoView = document.getElementById('estadoView');
+  var estadoEdit = document.getElementById('estadoEdit');
+  if (estadoView) estadoView.style.display='';
+  if (estadoEdit) estadoEdit.style.display='none';
+  var fv = document.getElementById('footerView');
+  var fe = document.getElementById('footerEdit');
+  if (fv) fv.style.display='flex';
+  if (fe) fe.style.display='none';
+}
+
+/* Lista de todos os campos editáveis possíveis */
+var EDIT_FIELDS = ['estado','responsavel','fr_obs','fr_link','co_sugestao','co_link','cs_falta','su_desc','de_desc'];
+
+function gravarTudo() {
+  if (!ticketAtivo) return;
+  var updates = {};
+  /* Recolhe apenas os campos que existem no DOM neste ticket */
+  EDIT_FIELDS.forEach(function(k) {
+    var el = document.getElementById('ef_'+k);
+    if (el) updates[k] = el.value;
+  });
+
+  var btn = document.getElementById('dBtnGravar');
+  var fb  = document.getElementById('dEditFeedback');
+  btn.disabled = true;
+  btn.textContent = '⏳ A gravar...';
+  if (fb) { fb.style.display='none'; }
+  document.getElementById('loadingOverlay').classList.add('open');
+
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      /* Atualiza memória local */
+      Object.keys(updates).forEach(function(k){ ticketAtivo[k]=updates[k]; });
+      for (var i=0; i<TICKETS_DATA.length; i++) {
+        if (TICKETS_DATA[i].id===ticketAtivo.id) { Object.keys(updates).forEach(function(k){ TICKETS_DATA[i][k]=updates[k]; }); break; }
+      }
+
+      /* Atualiza badge estado na tabela */
+      var novoEstado = updates.estado !== undefined ? updates.estado : ticketAtivo.estado;
+      if (novoEstado !== undefined) {
+        var bcls = novoEstado==='Em Análise'?'ba':novoEstado==='Resolvido'?'br':novoEstado==='Pendente'?'bp':'ba';
+        var bi = document.getElementById('estadoBadgeInline');
+        if (bi) { bi.className='badge '+bcls; bi.textContent=novoEstado||'—'; }
+        document.querySelectorAll('#tbody tr[data-estado]').forEach(function(row){
+          var idEl=row.querySelector('.trow-id');
+          if (idEl&&idEl.textContent.trim()===ticketAtivo.id) {
+            row.dataset.estado=novoEstado; row.dataset.sort4=novoEstado;
+            var b=row.querySelector('.badge'); if(b){b.className='badge '+bcls;b.textContent=novoEstado||'—';}
+          }
+        });
+        document.querySelectorAll('#mobileList .mt-card').forEach(function(card){
+          var idEl=card.querySelector('.mt-id');
+          if(idEl&&idEl.textContent.trim()===ticketAtivo.id){
+            card.dataset.estado=novoEstado;
+            var b=card.querySelector('.badge');if(b){b.className='badge '+bcls;b.textContent=novoEstado||'—';}
+          }
+        });
+      }
+
+      /* Atualiza view responsável */
+      if (updates.responsavel !== undefined) {
+        var fvR = document.getElementById('fv_responsavel');
+        if (fvR) {
+          var novoNome = emailParaNome(updates.responsavel);
+          fvR.querySelector('.detail-field-value').textContent = novoNome || '—';
+          fvR.querySelector('.detail-field-value').className = 'detail-field-value'+(novoNome&&novoNome!=='—'?'':' empty');
+        }
+      }
+
+      /* Atualiza views dos campos texto */
+      ['fr_obs','fr_link','co_sugestao','co_link','cs_falta','su_desc','de_desc'].forEach(function(k){
+        if (updates[k] !== undefined) {
+          var fv = document.getElementById('fv_'+k);
+          if (fv) {
+            var dv = fv.querySelector('.detail-field-value');
+            if (dv) {
+              var isLink = k.indexOf('link')!==-1||k.indexOf('Link')!==-1;
+              if (isLink && updates[k]) {
+                dv.innerHTML = '<a href="'+esc(updates[k])+'" target="_blank" rel="noopener">Abrir link ↗</a>';
+              } else {
+                dv.innerHTML = esc(updates[k]||'—').replace(/\n/g,'<br>');
+              }
+              dv.className = 'detail-field-value'+(updates[k]?'':' empty');
+            }
+          }
+        }
+      });
+
+      if (fb) { fb.textContent='✓ Gravado'; fb.className='edit-feedback ok'; fb.style.display=''; }
+      btn.disabled=false; btn.textContent='💾 Gravar';
+      setTimeout(function(){ cancelarEdicao(); }, 1200);
+    })
+    .withFailureHandler(function() {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if (fb) { fb.textContent='✕ Erro ao gravar'; fb.className='edit-feedback err'; fb.style.display=''; }
+      btn.disabled=false; btn.textContent='💾 Gravar';
+    })
+    .atualizarTicket(ticketAtivo.id, updates);
+}
+
+/* ── ELIMINAR ── */
+function pedirConfirm() {
+  if (!ticketAtivo) return;
+  document.getElementById('confirmDesc').textContent =
+    'O ticket ' + ticketAtivo.id + ' ("' + ticketAtivo.situacao + '") será apagado permanentemente da folha de cálculo. Esta ação não pode ser desfeita.';
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function fecharConfirm() {
+  document.getElementById('confirmOverlay').classList.remove('open');
+  document.getElementById('confirmBtnEliminar').disabled = false;
+  document.getElementById('confirmBtnEliminar').textContent = 'Eliminar';
+}
+function confirmarEliminar() {
+  if (!ticketAtivo) return;
+  var btn = document.getElementById('confirmBtnEliminar');
+  btn.disabled = true;
+  btn.textContent = '⏳ A eliminar...';
+  document.getElementById('loadingOverlay').classList.add('open');
+
+  google.script.run
+    .withSuccessHandler(function() {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      var id = ticketAtivo.id;
+      /* Marca como filtrado fora (sem remover o DOM — paginação trata) */
+      document.querySelectorAll('#tbody tr[data-estado]').forEach(function(row){
+        var idEl=row.querySelector('.trow-id');
+        if (idEl&&idEl.textContent.trim()===id){ row.dataset.filtered='0'; row.style.display='none'; }
+      });
+      document.querySelectorAll('#mobileList .mt-card').forEach(function(card){
+        var idEl=card.querySelector('.mt-id');
+        if(idEl&&idEl.textContent.trim()===id){ card.dataset.filtered='0'; card.style.display='none'; }
+      });
+      /* Remove de TICKETS_DATA */
+      TICKETS_DATA = TICKETS_DATA.filter(function(t){ return t.id!==id; });
+
+      fecharConfirm();
+      fecharDetalhe();
+      currentPage = 1;
+      renderPagination();
+    })
+    .withFailureHandler(function() {
+      document.getElementById('loadingOverlay').classList.remove('open');
+      btn.disabled = false;
+      btn.textContent = 'Eliminar';
+      document.getElementById('confirmDesc').textContent = '⚠️ Erro ao eliminar. Tenta novamente.';
+    })
+    .eliminarTicket(ticketAtivo.id);
+}
+
+/* ── MODAL FILTROS ── */
+function abrirFiltrosModal() {
+  pendingTypes=activeTypes.slice(); pendingUrgencia=activeUrgencia.slice(); pendingSituacao=activeSituacao.slice();
+  document.querySelectorAll('.filter-option').forEach(function(opt){
+    var g=opt.dataset.group,v=opt.dataset.val;
+    opt.classList.toggle('selected',(g==='estado'&&pendingTypes.indexOf(v)!==-1)||(g==='urgencia'&&pendingUrgencia.indexOf(v)!==-1)||(g==='situacao'&&pendingSituacao.indexOf(v)!==-1));
+  });
+  atualizarCountsModal();
+  document.getElementById('filterModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function fecharFiltrosModal(){ document.getElementById('filterModalOverlay').classList.remove('open'); document.body.style.overflow=''; }
+function toggleFilterOption(el){
+  var g=el.dataset.group,val=el.dataset.val;
+  var arr=g==='urgencia'?pendingUrgencia:g==='situacao'?pendingSituacao:pendingTypes;
+  var idx=arr.indexOf(val);
+  if(idx!==-1){arr.splice(idx,1);el.classList.remove('selected');}else{arr.push(val);el.classList.add('selected');}
+}
+function aplicarFiltrosModal(){ activeTypes=pendingTypes.slice();activeUrgencia=pendingUrgencia.slice();activeSituacao=pendingSituacao.slice();fecharFiltrosModal();aplicarFiltros();atualizarBotaoFiltrar(); }
+function removerFiltros(){ activeTypes=[];pendingTypes=[];activeUrgencia=[];pendingUrgencia=[];activeSituacao=[];pendingSituacao=[];aplicarFiltros();atualizarBotaoFiltrar(); }
+function atualizarBotaoFiltrar(){
+  var btn=document.getElementById('btnFiltrar'),lbl=document.getElementById('btnFiltrarLabel'),rem=document.getElementById('btnRemoverFiltros');
+  var total=activeTypes.length+activeUrgencia.length+activeSituacao.length;
+  if(total>0){btn.classList.add('active');lbl.textContent='Filtros aplicados ('+total+')';rem.style.display='';}
+  else{btn.classList.remove('active');lbl.textContent='Filtrar';rem.style.display='none';}
+}
+function toggleFg(id){ document.getElementById(id).classList.toggle('open'); }
+function atualizarCountsModal(){
+  var rows=Array.from(document.querySelectorAll('#tbody tr[data-estado]'));
+  ['Em Análise','Pendente','Resolvido'].forEach(function(val){
+    var id=val==='Em Análise'?'analise':val==='Pendente'?'pendente':'resolvido';
+    document.getElementById('fcount-'+id).textContent=rows.filter(function(r){return r.dataset.estado===val&&(!activeSearch||r.dataset.q.indexOf(activeSearch)!==-1);}).length;
+  });
+  ['Alta','Média','Baixa'].forEach(function(val){
+    var id=val==='Alta'?'urg-alta':val==='Média'?'urg-media':'urg-baixa';
+    document.getElementById('fcount-'+id).textContent=rows.filter(function(r){return(r.dataset.sort2||'').toLowerCase().indexOf(val.toLowerCase())!==-1&&(!activeSearch||r.dataset.q.indexOf(activeSearch)!==-1);}).length;
+  });
+  var sitMap={visita:'sit-visita',frota:'sit-frota',compras:'sit-compras','consumív':'sit-consumiv',sugest:'sit-sugest',desconfort:'sit-desconfort'};
+  Object.keys(sitMap).forEach(function(key){
+    document.getElementById('fcount-'+sitMap[key]).textContent=rows.filter(function(r){return(r.dataset.sort1||'').toLowerCase().indexOf(key)!==-1&&(!activeSearch||r.dataset.q.indexOf(activeSearch)!==-1);}).length;
+  });
+  var gc={estado:pendingTypes.length,urgencia:pendingUrgencia.length,situacao:pendingSituacao.length};
+  ['estado','urgencia','situacao'].forEach(function(g){var el=document.getElementById('fgcount-'+g);el.textContent=gc[g];el.classList.toggle('visible',gc[g]>0);});
+}
+
+/* ── FILTROS + PESQUISA ── */
+function pesquisar(val){ activeSearch=val.toLowerCase().trim(); aplicarFiltros(); }
+function aplicarFiltros(){
+  document.querySelectorAll('#tbody tr[data-estado]').forEach(function(el){
+    var estado=el.dataset.estado||'',urgRaw=(el.dataset.sort2||'').toLowerCase(),sitRaw=(el.dataset.sort1||'').toLowerCase(),q=el.dataset.q||'';
+    var ok=(activeTypes.length===0||activeTypes.indexOf(estado)!==-1)&&(activeUrgencia.length===0||activeUrgencia.some(function(u){return urgRaw.indexOf(u.toLowerCase())!==-1;}))&&(activeSituacao.length===0||activeSituacao.some(function(s){return sitRaw.indexOf(s.toLowerCase())!==-1;}))&&(!activeSearch||q.indexOf(activeSearch)!==-1);
+    el.dataset.filtered=ok?'1':'0'; el.style.display=ok?'':'none';
+  });
+  document.querySelectorAll('#mobileList .mt-card').forEach(function(el){
+    var estado=el.dataset.estado||'',urgRaw=(el.querySelector('.urg-badge')?el.querySelector('.urg-badge').textContent:'').toLowerCase(),sitRaw=(el.querySelector('.mt-title')?el.querySelector('.mt-title').textContent:'').toLowerCase(),q=el.dataset.q||'';
+    var ok=(activeTypes.length===0||activeTypes.indexOf(estado)!==-1)&&(activeUrgencia.length===0||activeUrgencia.some(function(u){return urgRaw.indexOf(u.toLowerCase())!==-1;}))&&(activeSituacao.length===0||activeSituacao.some(function(s){return sitRaw.indexOf(s.toLowerCase())!==-1;}))&&(!activeSearch||q.indexOf(activeSearch)!==-1);
+    el.dataset.filtered=ok?'1':'0'; el.style.display=ok?'':'none';
+  });
+  currentPage=1; renderPagination();
+}
+
+/* ── SORT ── */
+function sortTable(col,th){
+  var tbody=document.getElementById('tbody');
+  var rows=Array.from(tbody.querySelectorAll('tr[data-estado]'));
+  sortDir=(sortCol===col)?sortDir*-1:1; sortCol=col;
+  document.querySelectorAll('.ticket-table th').forEach(function(h){h.classList.remove('sort-asc','sort-desc');});
+  th.classList.add(sortDir===1?'sort-asc':'sort-desc');
+  rows.sort(function(a,b){var av=(a.dataset['sort'+col]||'').toLowerCase(),bv=(b.dataset['sort'+col]||'').toLowerCase();if(col===0)return(parseInt(av.replace(/\D/g,'')||0)-parseInt(bv.replace(/\D/g,'')||0))*sortDir;return av<bv?-sortDir:av>bv?sortDir:0;});
+  rows.forEach(function(r){tbody.appendChild(r);}); currentPage=1; renderPagination();
+}
+
+/* ── NAV & DRAWER ── */
+function navTo(url){
+  document.getElementById('loadingOverlay').classList.add('open');
+  setTimeout(function(){
+    try {
+      window.top.location.href = url;
+    } catch(e) {
+      window.location.href = url;
+    }
+  }, 50);
+}
+
+var drawerOpen=false;
+function toggleDrawer(){drawerOpen?closeDrawer():openDrawer();}
+function openDrawer(){drawerOpen=true;document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');document.getElementById('hamburger').classList.add('open');document.body.style.overflow='hidden';}
+function closeDrawer(){drawerOpen=false;document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');document.getElementById('hamburger').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){ fecharConfirm(); fecharDetalhe(); fecharFiltrosModal(); closeDrawer(); }
+});
+
+atualizarBotaoFiltrar();
+/* Marca todos como visíveis para filtro no arranque */
+document.querySelectorAll('#tbody tr[data-estado]').forEach(function(r){ r.dataset.filtered='1'; });
+document.querySelectorAll('#mobileList .mt-card').forEach(function(c){ c.dataset.filtered='1'; });
+renderPagination();
+</script>
+</body>
+</html>

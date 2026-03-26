@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<script>if(window!==window.top){window.top.location.href=window.location.href;}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RISE – Ver Projetos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+
+<style>
+/* ── RISE BASE ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--off:#f5f4f2;--off2:#edecea;--black:#0a0a0a;--ink:#1a1a1a;
+  --muted:#6b6b6b;--muted2:#9e9e9e;--border:#e2e0dd;--border2:#ccc9c5;
+  --red:#d92b22;--red-light:#fdf1f0;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--nav:64px;--drawer:300px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--off);color:var(--ink);font-family:var(--fb);overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--off2)}::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:600;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.logo-box{background:var(--black);color:var(--white);font-family:var(--fh);font-weight:800;font-size:14px;padding:5px 11px;letter-spacing:.01em}
+.logo-box .s{color:var(--red)}
+.logo-text{font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);font-family:var(--fh);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--red)}
+.uname{font-size:12px;color:rgba(255,255,255,.4)}
+.role-badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px;background:rgba(217,43,34,.2);color:var(--red)}
+
+/* HAMBURGER */
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none;border-radius:6px;transition:background .2s;width:40px;height:40px}
+.hamburger:hover{background:rgba(255,255,255,.08)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--white);border-radius:1px;transition:transform .3s ease,opacity .3s ease}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:700;pointer-events:none;transition:background .3s ease}
+.drawer-overlay.open{background:rgba(0,0,0,.25);pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:var(--drawer);background:var(--white);border-right:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:var(--nav);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:var(--black)}
+.drawer-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:6px;border-radius:6px;font-size:16px;transition:.2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+.drawer-close:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.drawer-body{flex:1;padding:8px 0}
+.drawer-section-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:20px 20px 6px}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);font-size:13px;font-weight:400;text-decoration:none;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.drawer-item:hover{background:var(--off);color:var(--ink);border-left-color:var(--border2)}
+.drawer-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500}
+.drawer-item .di-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.7}
+.drawer-item.active .di-icon{opacity:1}
+.drawer-divider{height:1px;background:var(--border);margin:8px 20px}
+.drawer-footer{padding:20px;border-top:1px solid var(--border);flex-shrink:0}
+.drawer-footer-text{font-size:10px;color:var(--muted2)}
+
+/* HERO */
+.hero{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 52px;margin-top:var(--nav);background:var(--off);border-bottom:1px solid var(--border);border-top:3px solid var(--red)}
+.hero-title{font-family:var(--fh);font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--black)}
+.hero-title .dot{color:var(--red)}
+.hero-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:300}
+
+/* PAGE CONTENT */
+.page-content{padding:28px 52px;flex:1;background:#fff}
+
+/* LOADING OVERLAY */
+.loading-overlay{position:fixed;inset:0;background:rgba(220,218,215,.75);backdrop-filter:blur(3px);z-index:1000;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.open{opacity:1;pointer-events:all}
+.loading-logo-wrap{position:relative;width:180px;height:68px}
+.loading-logo-base{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;filter:brightness(0) opacity(.12)}
+.loading-logo-fill{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;clip-path:inset(0 100% 0 0);animation:fillRight 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fillRight{0%{clip-path:inset(0 100% 0 0)}60%{clip-path:inset(0 0% 0 0)}85%{clip-path:inset(0 0% 0 0);opacity:1}100%{clip-path:inset(0 0% 0 0);opacity:0}}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:10px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted2);background:var(--white)}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:13px;color:var(--black)}
+.foot-logo .s{color:var(--red)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;text-decoration:none;transition:.2s;letter-spacing:.02em;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#c0241c;color:#fff}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+
+/* ── FILTERS BAR ── */
+.filters{padding:14px 52px;display:flex;gap:10px;background:var(--white);flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.btn-filter{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--ink);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-filter:hover{border-color:var(--border2);background:var(--off)}
+.btn-filter.active{border-color:var(--border2);background:var(--off);font-weight:600}
+.btn-clear-filters{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--muted2);font-family:var(--fb);font-size:11px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-clear-filters:hover{color:var(--red);border-color:rgba(217,43,34,.2);background:var(--red-light)}
+.search-wrap-vp{margin-left:auto;position:relative}
+.search-wrap-vp input{background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:12px;padding:7px 14px 7px 34px;border-radius:7px;width:220px;outline:none;transition:.2s}
+.search-wrap-vp input:focus{border-color:var(--border2);background:var(--white)}
+.search-wrap-vp input::placeholder{color:var(--muted2)}
+.search-wrap-vp::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:.5}
+
+/* ── FILTER MODAL ── */
+.filter-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .22s}
+.filter-modal-overlay.open{opacity:1;pointer-events:all}
+.filter-modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-width:420px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(10px) scale(.98);transition:transform .22s;overflow:hidden}
+.filter-modal-overlay.open .filter-modal{transform:translateY(0) scale(1)}
+.filter-modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.filter-modal-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--black);letter-spacing:-.02em}
+.filter-modal-close{width:30px;height:30px;border-radius:7px;background:var(--off);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.filter-modal-close:hover{background:var(--off2);color:var(--ink)}
+.filter-modal-body{padding:8px 0;overflow-y:auto;flex:1}
+.filter-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);background:var(--off);border-radius:0 0 14px 14px;flex-shrink:0}
+.fg{border-bottom:1px solid var(--border)}.fg:last-child{border-bottom:none}
+.fg-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;cursor:pointer;user-select:none;transition:background .15s;gap:12px}
+.fg-header:hover{background:var(--off)}
+.fg-header-left{display:flex;align-items:center;gap:10px}
+.fg-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-family:var(--fb);transition:color .15s}
+.fg-header:hover .fg-label{color:var(--ink)}
+.fg-active-count{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--red);color:#fff;font-family:var(--fb);display:none}
+.fg-active-count.visible{display:block}
+.fg-arrow{font-size:11px;color:var(--muted2);transition:transform .25s ease;flex-shrink:0}
+.fg.open .fg-arrow{transform:rotate(180deg)}
+.fg-body{display:none;padding:4px 24px 16px}
+.fg.open .fg-body{display:block}
+.filter-options{display:flex;flex-direction:column;gap:6px}
+.filter-option{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:.15s;user-select:none}
+.filter-option:hover{background:var(--off);border-color:var(--border2)}
+.filter-option.selected{border-color:transparent}
+.filter-option.selected.fo-emcurso{background:rgba(37,99,235,.07);border-color:rgba(37,99,235,.2)}
+.filter-option.selected.fo-finalizado{background:rgba(22,163,74,.07);border-color:rgba(22,163,74,.2)}
+.filter-option.selected.fo-cancelado{background:rgba(220,38,38,.07);border-color:rgba(220,38,38,.2)}
+.fo-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fo-label{flex:1;font-family:var(--fb);font-size:13px;font-weight:500;color:var(--ink)}
+.fo-count{font-size:10px;font-weight:700;color:var(--muted2);background:var(--off2);padding:2px 8px;border-radius:20px;font-family:var(--fb)}
+.fo-checkbox{width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;transition:.15s;font-size:10px;color:#fff}
+.filter-option.selected.fo-emcurso .fo-checkbox{background:#2563eb;border-color:#2563eb}
+.filter-option.selected.fo-finalizado .fo-checkbox{background:#16a34a;border-color:#16a34a}
+.filter-option.selected.fo-cancelado .fo-checkbox{background:#dc2626;border-color:#dc2626}
+.fo-checkmark{display:none}
+.filter-option.selected .fo-checkmark{display:block;font-weight:800}
+
+/* datas no modal */
+.fg-dates{padding:4px 0 8px;display:flex;flex-direction:column;gap:10px}
+.fg-date-row{display:flex;flex-direction:column;gap:4px}
+.fg-date-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);font-family:var(--fb)}
+.fg-date-input{background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:13px;padding:8px 12px;border-radius:8px;outline:none;transition:.2s;width:100%}
+.fg-date-input:focus{border-color:var(--border2);background:var(--white)}
+
+/* TABELA */
+:root{--card-border:#e5e7eb;--primary:#2563eb;--success:#16a34a;--danger:#dc2626}
+.tabela-card{background:#fff;border:1px solid var(--card-border);border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tabela-header{padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--card-border)}
+.tabela-header h5{font-size:15px;font-weight:700;color:#111827;margin:0}
+.badge-count{background:var(--red);color:#fff;border-radius:999px;font-size:12px;font-weight:700;padding:3px 10px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{background:var(--off);color:var(--muted2);font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.04em;padding:11px 14px;border-bottom:2px solid var(--border);white-space:nowrap;position:sticky;top:0;z-index:10}
+thead th:first-child{padding-left:24px}
+thead th:last-child{padding-right:24px;text-align:center}
+tbody tr{border-bottom:1px solid #f1f3f5;transition:background .15s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:nth-child(even){background:#f9fafb}
+thead th:hover{color:var(--black)!important;background:var(--off2)}
+tbody td{padding:13px 14px;color:#1f2937;vertical-align:middle}
+tbody td:first-child{padding-left:24px;font-weight:600;color:var(--red)}
+tbody td:last-child{padding-right:24px;text-align:center}
+thead th.sortable{cursor:pointer;user-select:none}
+thead th .sort-icon{display:inline-block;margin-left:5px;opacity:.35;font-size:10px}
+thead th.sort-asc .sort-icon,thead th.sort-desc .sort-icon{opacity:1;color:var(--red)}
+thead th.sort-asc .sort-icon::after{content:' ▲'}
+thead th.sort-desc .sort-icon::after{content:' ▼'}
+thead th.sortable:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:''}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.status-badge .dot{font-size:9px}
+.status-em-curso{background:#eff6ff;color:#1d4ed8}
+.status-finalizado{background:#f0fdf4;color:#15803d}
+.status-cancelado{background:#fef2f2;color:#b91c1c}
+.icon-check{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#dcfce7;color:#16a34a;font-size:13px;font-weight:700}
+.icon-cross{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#fee2e2;color:#dc2626;font-size:13px;font-weight:700}
+.icon-dash{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#f3f4f6;color:#9ca3af;font-size:15px;font-weight:700}
+.btn-acao{background:none;border:1px solid #e5e7eb;border-radius:8px;padding:6px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;color:#6b7280;cursor:pointer;transition:all .15s}
+.btn-acao:hover{background:var(--red-light);border-color:var(--red);color:var(--red)}
+.btn-acao.btn-eliminar:hover{background:#fef2f2;border-color:#dc2626;color:#dc2626}
+.icon-eye,.icon-trash{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.estado-vazio{padding:60px 24px;text-align:center;color:var(--muted)}
+.estado-vazio p{margin:0;font-size:14px}
+.estado-vazio strong{display:block;font-size:15px;color:#374151;margin-bottom:4px}
+.loading-row td{text-align:center;padding:50px;color:var(--muted)}
+.data-cell{font-size:13px;color:#374151;white-space:nowrap}
+.tabela-scroll{overflow-x:auto}
+@keyframes fadeRow{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+tbody tr{animation:fadeRow .2s ease both}
+
+/* PAGINATION */
+.pagination-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 0;flex-wrap:wrap;gap:10px;margin-top:16px}
+.pagination-info{font-size:12px;color:var(--muted);font-family:var(--fb)}
+.pagination-info strong{color:var(--ink);font-weight:600}
+.pagination-controls{display:flex;align-items:center;gap:4px}
+.pg-btn{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:.15s;line-height:1}
+.pg-btn:hover:not(:disabled){background:var(--white);border-color:var(--border2);color:var(--ink)}
+.pg-btn:disabled{opacity:.35;cursor:not-allowed}
+.pg-btn.active{background:var(--red);border-color:var(--red);color:#fff;font-weight:700}
+.pg-ellipsis{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;font-size:12px;color:var(--muted2)}
+
+/* MODAL ELIMINAR */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:9999;animation:fadeOverlay .15s ease}
+@keyframes fadeOverlay{from{opacity:0}to{opacity:1}}
+.modal-card{background:#fff;border-radius:16px;padding:32px 28px 24px;max-width:400px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.2);animation:slideUp .2s ease}
+@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.modal-icon{width:52px;height:52px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:22px}
+.modal-title{font-size:17px;font-weight:700;color:#111827;text-align:center;margin-bottom:8px}
+.modal-desc{font-size:14px;color:#6b7280;text-align:center;margin-bottom:24px;line-height:1.5}
+.modal-desc strong{color:#111827}
+.modal-actions{display:flex;gap:10px}
+.modal-btn{flex:1;padding:10px 16px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;border:none;transition:all .15s}
+.modal-btn-cancel{background:#f3f4f6;color:#374151;border:1px solid #d1d5db}
+.modal-btn-cancel:hover{background:#e5e7eb}
+.modal-btn-delete{background:#dc2626;color:#fff}
+.modal-btn-delete:hover{background:#b91c1c}
+.modal-btn-delete:disabled{background:#fca5a5;cursor:not-allowed}
+
+.mobile-projetos-list{
+  display:none;flex-direction:column;gap:10px;
+  padding:20px 24px;flex:1;
+}
+.mp-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:10px;padding:16px;cursor:pointer;transition:.2s;
+}
+.mp-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06);border-color:var(--border2)}
+.mp-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px}
+.mp-id{font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted2)}
+.mp-nome{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--black);font-family:var(--fb)}
+.mp-meta{font-size:11px;color:var(--muted);line-height:1.6;font-weight:300;font-family:var(--fb)}
+
+@media(max-width:900px){
+  .hero,.page-content,.filters{padding-left:24px;padding-right:24px}
+  footer{padding:12px 24px;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:space-between;font-size:10px;overflow:hidden;margin-top:auto}
+  .foot-logo{width:auto}
+  .uname,.role-badge{display:none}
+  .search-wrap-vp{margin-left:0;flex:1;min-width:0}
+  .search-wrap-vp input{width:100%}
+  .filters{flex-wrap:nowrap;align-items:center;gap:8px}
+  .page-content{display:none}
+  .mobile-projetos-list{display:flex}
+}
+</style>
+</head>
+<body>
+
+<? var WU = webappUrl; ?>
+<?
+  var userName  = dados.sessao ? dados.sessao.nome : 'Utilizador';
+  var userRole  = dados.sessao ? dados.sessao.role : 'utilizador';
+  var _nameParts = userName.trim().split(' ');
+  var userInit  = _nameParts[0].charAt(0).toUpperCase() + (_nameParts.length > 1 ? _nameParts[_nameParts.length-1].charAt(0).toUpperCase() : '');
+  var podeEditar = (userRole === 'admin') ? 'true' : 'false';
+?>
+
+<!-- DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span>Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span>Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span>Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span>Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span>Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span>RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span>Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span>Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span>Viagens de Veículos</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+    <? } ?>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span>Ver Projetos</span></button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)"><?= userName ?></div>
+    <div class="drawer-footer-text" style="margin-top:3px"><?= userRole ?> · RISE</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-left">
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    <div class="logo" onclick="navTo('<?= WU ?>')">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span class="logo-text">Portal Interno</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="uname"><?= userName ?></span>
+    <span class="role-badge"><?= userRole ?></span>
+    <div class="avatar"><?= userInit ?></div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div>
+    <div class="hero-title">Ver Projetos<span class="dot">.</span></div>
+    <div class="hero-sub">Lista de projetos já planeados</div>
+  </div>
+  <? if (podeEditar === 'true') { ?>
+  <button class="btn btn-red" onclick="navTo('<?= WU ?>?page=criarProjeto')">📝 Novo Projeto</button>
+  <? } ?>
+</div>
+
+<!-- FILTROS BAR -->
+<div class="filters">
+  <button class="btn-filter" id="btnFiltrar" onclick="abrirFiltrosModal()">
+    <span>⚙️</span><span id="btnFiltrarLabel">Filtrar</span>
+  </button>
+  <button class="btn-clear-filters" id="btnRemoverFiltros" onclick="removerFiltros()" style="display:none">
+    <span>✕</span> Remover filtros
+  </button>
+    <span class="badge-count" id="badge-count" style="font-size:11px;padding:3px 10px">— projetos</span>
+  <div class="search-wrap-vp">
+    <input type="text" id="searchInput" placeholder="Pesquisar projeto..." oninput="aplicarFiltrosSemScroll()">
+  </div>
+</div>
+
+<!-- MODAL FILTROS -->
+<div class="filter-modal-overlay" id="filterModalOverlay">
+  <div class="filter-modal">
+    <div class="filter-modal-header">
+      <div class="filter-modal-title">⚙️ Filtrar projetos</div>
+      <button class="filter-modal-close" onclick="fecharFiltrosModal()">✕</button>
+    </div>
+    <div class="filter-modal-body">
+
+      <!-- STATUS -->
+      <div class="fg open" id="fg-status">
+        <div class="fg-header" onclick="toggleFg('fg-status')">
+          <div class="fg-header-left">
+            <span class="fg-label">Status</span>
+            <span class="fg-active-count" id="fgcount-status">0</span>
+          </div>
+          <span class="fg-arrow">▼</span>
+        </div>
+        <div class="fg-body">
+          <div class="filter-options">
+            <div class="filter-option fo-emcurso" data-val="Em Curso" onclick="toggleFilterOption(this)">
+              <div class="fo-dot" style="background:#2563eb"></div>
+              <span class="fo-label">Em Curso</span>
+              <span class="fo-count" id="fcount-emcurso">0</span>
+              <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+            </div>
+            <div class="filter-option fo-finalizado" data-val="Finalizado" onclick="toggleFilterOption(this)">
+              <div class="fo-dot" style="background:#16a34a"></div>
+              <span class="fo-label">Finalizado</span>
+              <span class="fo-count" id="fcount-finalizado">0</span>
+              <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+            </div>
+            <div class="filter-option fo-cancelado" data-val="Cancelado" onclick="toggleFilterOption(this)">
+              <div class="fo-dot" style="background:#dc2626"></div>
+              <span class="fo-label">Cancelado</span>
+              <span class="fo-count" id="fcount-cancelado">0</span>
+              <div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DATAS -->
+      <div class="fg open" id="fg-datas">
+        <div class="fg-header" onclick="toggleFg('fg-datas')">
+          <div class="fg-header-left">
+            <span class="fg-label">Datas</span>
+            <span class="fg-active-count" id="fgcount-datas">0</span>
+          </div>
+          <span class="fg-arrow">▼</span>
+        </div>
+        <div class="fg-body">
+          <div class="fg-dates">
+            <div class="fg-date-row">
+              <div class="fg-date-label">Data de Início</div>
+              <input type="date" id="filtro-data-inicio" class="fg-date-input">
+            </div>
+            <div class="fg-date-row">
+              <div class="fg-date-label">Data de Fim</div>
+              <input type="date" id="filtro-data-fim" class="fg-date-input">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+    <div class="filter-modal-footer">
+      <button class="btn btn-ghost" onclick="fecharFiltrosModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="aplicarFiltrosModal()">Aplicar filtros</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE CONTENT -->
+<div class="page-content">
+
+    <div class="tabela-card">
+    <div class="tabela-scroll">
+      <table id="tabela-projetos">
+        <thead>
+          <tr>
+            <th class="sortable" data-col="0">Nº do Projeto<span class="sort-icon"></span></th>
+            <th class="sortable" data-col="2">Nome do Evento<span class="sort-icon"></span></th>
+            <th class="sortable" data-col="1">Local<span class="sort-icon"></span></th>
+            <th class="sortable" data-col="3">Data Início<span class="sort-icon"></span></th>
+            <th class="sortable" data-col="4">Data Fim<span class="sort-icon"></span></th>
+            <th class="sortable" data-col="5">Status<span class="sort-icon"></span></th>
+            <th title="Alimentação">Alimentação</th>
+            <th title="Alojamento">Alojamento</th>
+            <th title="Freelancers">Freelancers</th>
+            <th title="Subcontratados">Subcontrat.</th>
+            <th style="width:80px;"></th>
+          </tr>
+        </thead>
+        <tbody id="tbody-projetos">
+          <tr class="loading-row">
+            <td colspan="11">
+              <div class="spinner-border spinner-border-sm text-dark me-2" role="status"></div>
+              A carregar projetos...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagination-bar" id="paginationBar" style="display:none;padding:14px 24px">
+      <div class="pagination-info" id="paginationInfo"></div>
+      <div class="pagination-controls" id="paginationControls"></div>
+    </div>
+  </div>
+
+  <!-- MODAL ELIMINAR -->
+  <div id="modal-eliminar" class="modal-overlay" style="display:none;">
+    <div class="modal-card">
+      <div class="modal-icon">🗑️</div>
+      <div class="modal-title">Eliminar Projeto</div>
+      <div class="modal-desc">
+        Tens a certeza que queres eliminar o projeto <strong id="modal-projeto-id"></strong>?<br>
+        Esta ação não pode ser desfeita.
+      </div>
+      <div class="modal-actions">
+        <button class="modal-btn modal-btn-cancel" onclick="fecharModalEliminar()">Cancelar</button>
+        <button class="modal-btn modal-btn-delete" id="btn-confirmar-eliminar" onclick="confirmarEliminar()">Eliminar Projeto</button>
+      </div>
+    </div>
+  </div>
+
+
+
+</div><!-- /page-content -->
+
+  <!-- LISTA MOBILE PROJETOS -->
+<div class="mobile-projetos-list" id="mobileProjetosList"></div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-base"></div>
+    <div class="loading-logo-fill"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+  <div>© 2026 RISE · a Europalco company</div>
+  <div>Departamento de Planeamento · <?= dados.dataHoje ?></div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+var WU = '<?= webappUrl ?>';
+var PODE_ELIMINAR = false;
+
+google.script.run
+  .withSuccessHandler(function(sessao) {
+    PODE_ELIMINAR = (sessao && sessao.role === 'admin');
+  })
+  .getSessaoCliente();
+
+var todosOsProjetos  = [];
+var projetosVisiveis = [];
+var projetoParaEliminar = null;
+
+// ── ESTADO FILTROS ──
+var activeStatus      = [];
+var pendingStatus     = [];
+var activeDataInicio  = '';
+var activeDataFim     = '';
+var pendingDataInicio = '';
+var pendingDataFim    = '';
+
+window.initPagina = function() { carregarTodosProjetos(); };
+
+// ── CARREGAR ──
+function carregarTodosProjetos() {
+  if (window._projetosCache && (Date.now() - window._projetosCacheTs) < 60000) {
+    todosOsProjetos = window._projetosCache;
+    renderTabela(todosOsProjetos);
+    return;
+  }
+  mostrarLoading();
+  google.script.run
+    .withSuccessHandler(function(projetos) {
+      todosOsProjetos = projetos || [];
+      window._projetosCache   = todosOsProjetos;
+      window._projetosCacheTs = Date.now();
+      atualizarCountsModal();
+      renderTabela(todosOsProjetos);
+    })
+    .withFailureHandler(function(err) {
+      mostrarErroTabela("Erro ao carregar projetos: " + (err.message || err));
+    })
+    .listarProjetos();
+}
+
+// ── FILTROS MODAL ──
+function abrirFiltrosModal() {
+  pendingStatus     = activeStatus.slice();
+  pendingDataInicio = activeDataInicio;
+  pendingDataFim    = activeDataFim;
+  document.querySelectorAll('.filter-option').forEach(function(opt) {
+    opt.classList.toggle('selected', pendingStatus.indexOf(opt.dataset.val) !== -1);
+  });
+  document.getElementById('filtro-data-inicio').value = pendingDataInicio;
+  document.getElementById('filtro-data-fim').value    = pendingDataFim;
+  atualizarCountsModal();
+  document.getElementById('filterModalOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function fecharFiltrosModal() {
+  document.getElementById('filterModalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function toggleFg(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+function toggleFilterOption(el) {
+  var val = el.dataset.val, idx = pendingStatus.indexOf(val);
+  if (idx !== -1) { pendingStatus.splice(idx, 1); el.classList.remove('selected'); }
+  else { pendingStatus.push(val); el.classList.add('selected'); }
+  atualizarCountsModal();
+}
+function aplicarFiltrosModal() {
+  activeStatus     = pendingStatus.slice();
+  activeDataInicio = document.getElementById('filtro-data-inicio').value;
+  activeDataFim    = document.getElementById('filtro-data-fim').value;
+  fecharFiltrosModal();
+  aplicarFiltros();
+  atualizarBotaoFiltrar();
+}
+function removerFiltros() {
+  activeStatus = []; pendingStatus = [];
+  activeDataInicio = ''; activeDataFim = '';
+  pendingDataInicio = ''; pendingDataFim = '';
+  document.getElementById('searchInput').value = '';
+  aplicarFiltros();
+  atualizarBotaoFiltrar();
+}
+function atualizarBotaoFiltrar() {
+  var btn  = document.getElementById('btnFiltrar');
+  var lbl  = document.getElementById('btnFiltrarLabel');
+  var rem  = document.getElementById('btnRemoverFiltros');
+  var total = activeStatus.length + (activeDataInicio ? 1 : 0) + (activeDataFim ? 1 : 0);
+  var search = (document.getElementById('searchInput').value || '').trim();
+  if (total > 0 || search) {
+    btn.classList.add('active');
+    lbl.textContent = 'Filtros aplicados' + (total > 0 ? ' (' + total + ')' : '');
+    rem.style.display = '';
+  } else {
+    btn.classList.remove('active');
+    lbl.textContent = 'Filtrar';
+    rem.style.display = 'none';
+  }
+}
+function atualizarCountsModal() {
+  var counts = {'Em Curso': 0, 'Finalizado': 0, 'Cancelado': 0};
+  todosOsProjetos.forEach(function(p) {
+    if (counts[p.Status_Planeamento] !== undefined) counts[p.Status_Planeamento]++;
+  });
+  document.getElementById('fcount-emcurso').textContent   = counts['Em Curso'];
+  document.getElementById('fcount-finalizado').textContent = counts['Finalizado'];
+  document.getElementById('fcount-cancelado').textContent  = counts['Cancelado'];
+  var sc = document.getElementById('fgcount-status');
+  sc.textContent = pendingStatus.length;
+  sc.classList.toggle('visible', pendingStatus.length > 0);
+  var dCount = (pendingDataInicio ? 1 : 0) + (pendingDataFim ? 1 : 0);
+  var dc = document.getElementById('fgcount-datas');
+  dc.textContent = dCount;
+  dc.classList.toggle('visible', dCount > 0);
+}
+function aplicarFiltros() {
+  var search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  var resultado = todosOsProjetos.filter(function(p) {
+    if (activeStatus.length > 0 && activeStatus.indexOf(p.Status_Planeamento) === -1) return false;
+    if (search &&
+        !(p.ID_Projeto || '').toLowerCase().includes(search) &&
+        !(p.Nome_do_Evento || '').toLowerCase().includes(search) &&
+        !(p.Local || '').toLowerCase().includes(search)) return false;
+    if (activeDataInicio || activeDataFim) {
+      var pIni = p.Dia_Inicio || '';
+      var pFim = p.Dia_Fim    || '';
+      if (!pIni && !pFim) return false;
+      var ini = pIni || pFim;
+      var fim = pFim || pIni;
+      if (activeDataInicio && activeDataFim) { if (ini > activeDataFim || fim < activeDataInicio) return false; }
+      else if (activeDataInicio) { if (fim < activeDataInicio) return false; }
+      else if (activeDataFim)    { if (ini > activeDataFim) return false; }
+    }
+    return true;
+  });
+  renderTabela(resultado);
+  atualizarBotaoFiltrar();
+}
+function aplicarFiltrosSemScroll() {
+  var search = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+  var resultado = todosOsProjetos.filter(function(p) {
+    if (activeStatus.length > 0 && activeStatus.indexOf(p.Status_Planeamento) === -1) return false;
+    if (search &&
+        !(p.ID_Projeto || '').toLowerCase().includes(search) &&
+        !(p.Nome_do_Evento || '').toLowerCase().includes(search) &&
+        !(p.Local || '').toLowerCase().includes(search)) return false;
+    if (activeDataInicio || activeDataFim) {
+      var pIni = p.Dia_Inicio || '';
+      var pFim = p.Dia_Fim    || '';
+      if (!pIni && !pFim) return false;
+      var ini = pIni || pFim;
+      var fim = pFim || pIni;
+      if (activeDataInicio && activeDataFim) { if (ini > activeDataFim || fim < activeDataInicio) return false; }
+      else if (activeDataInicio) { if (fim < activeDataInicio) return false; }
+      else if (activeDataFim)    { if (ini > activeDataFim) return false; }
+    }
+    return true;
+  });
+  projetosVisiveis = resultado.slice().sort(function(a, b) {
+    var da = a.Dia_Inicio || '', db = b.Dia_Inicio || '';
+    if (db < da) return -1; if (db > da) return 1; return 0;
+  });
+  currentPage = 1;
+  var sx = window.scrollX, sy = window.scrollY;
+  renderPagina();
+  requestAnimationFrame(function() {
+    requestAnimationFrame(function() {
+      window.scrollTo(sx, sy);
+    });
+  });
+  atualizarBotaoFiltrar();
+}
+
+// ── TABELA ──
+var currentPage = 1;
+var PER_PAGE = 10;
+
+function renderTabela(projetos) {
+  projetosVisiveis = projetos.slice().sort(function(a, b) {
+    var da = a.Dia_Inicio || '', db = b.Dia_Inicio || '';
+    if (db < da) return -1; if (db > da) return 1; return 0;
+  });
+  currentPage = 1;
+  renderPagina();
+}
+
+function renderPagina() {
+  var projetos = projetosVisiveis;
+  var total = projetos.length;
+  var totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (currentPage > totalPages) currentPage = totalPages;
+  var start = (currentPage - 1) * PER_PAGE;
+  var end   = Math.min(start + PER_PAGE, total);
+  var pagina = projetos.slice(start, end);
+
+  var tbody = document.getElementById('tbody-projetos');
+  var badge = document.getElementById('badge-count');
+  badge.textContent = total + (total === 1 ? ' projeto' : ' projetos');
+
+  if (!projetos || projetos.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11"><div class="estado-vazio"><strong>Nenhum projeto encontrado</strong><p>Tente ajustar os filtros de pesquisa.</p></div></td></tr>';
+    document.getElementById('paginationBar').style.display = 'none';
+    return;
+  }
+
+  tbody.innerHTML = pagina.map(function(p, i) {
+    return '<tr style="animation-delay:' + (i*30) + 'ms">' +
+      '<td>' + escHtml(p.ID_Projeto||'—') + '</td>' +
+      '<td>' + escHtml(p.Nome_do_Evento||'—') + '</td>' +
+      '<td>' + escHtml(p.Local||'—') + '</td>' +
+      '<td class="data-cell">' + formatarData(p.Dia_Inicio) + '</td>' +
+      '<td class="data-cell">' + formatarData(p.Dia_Fim) + '</td>' +
+      '<td>' + statusBadge(p.Status_Planeamento) + '</td>' +
+      '<td style="text-align:center">' + iconeBool(p.Tem_Alimentacao) + '</td>' +
+      '<td style="text-align:center">' + iconeBool(p.Tem_Alojamento) + '</td>' +
+      '<td style="text-align:center">' + iconeBool(p.Tem_Freelancer) + '</td>' +
+      '<td style="text-align:center">' + iconeBool(p.Tem_Subcontratado) + '</td>' +
+      '<td><div style="display:flex;gap:6px;justify-content:center;">' +
+        '<button class="btn-acao" onclick="verProjeto(\'' + escHtml(p.ID_Projeto||'') + '\')" title="Ver projeto">' +
+          '<svg class="icon-eye" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>' +
+        '</button>' +
+        (PODE_ELIMINAR ? '<button class="btn-acao btn-eliminar" onclick="abrirModalEliminar(\'' + escHtml(p.ID_Projeto||'') + '\')" title="Eliminar projeto">' +
+          '<svg class="icon-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
+        '</button>' : '') +
+      '</div></td>' +
+    '</tr>';
+  }).join('');
+
+  var bar = document.getElementById('paginationBar');
+  bar.style.display = totalPages <= 1 ? 'none' : '';
+  document.getElementById('paginationInfo').innerHTML =
+    'A mostrar <strong>' + (start+1) + '–' + end + '</strong> de <strong>' + total + '</strong> projetos';
+  renderPaginationControls(totalPages);
+
+  var mobileList = document.getElementById('mobileProjetosList');
+if (mobileList) {
+  if (pagina.length === 0) {
+    mobileList.innerHTML = '<div style="text-align:center;padding:48px;color:var(--muted2)">Sem projetos encontrados.</div>';
+  } else {
+    mobileList.innerHTML = pagina.map(function(p) {
+      var statusCls = p.Status_Planeamento === 'Em Curso' ? 'status-em-curso' :
+                      p.Status_Planeamento === 'Finalizado' ? 'status-finalizado' : 'status-cancelado';
+      return '<div class="mp-card">'
+        + '<div class="mp-top">'
+        + '<span class="mp-id">' + escHtml(p.ID_Projeto||'—') + '</span>'
+        + '<span class="status-badge ' + statusCls + '">● ' + escHtml(p.Status_Planeamento||'—') + '</span>'
+        + '</div>'
+        + '<div class="mp-nome">' + escHtml(p.Nome_do_Evento||'—') + '</div>'
+        + '<div class="mp-meta">📍 ' + escHtml(p.Local||'—') + '</div>'
+        + '<div class="mp-meta">📅 ' + formatarData(p.Dia_Inicio) + ' → ' + formatarData(p.Dia_Fim) + '</div>'
+        + '<div style="margin-top:12px;display:flex;justify-content:flex-end">'
+        + '<button class="btn btn-red" style="font-size:11px;padding:7px 14px" onclick="verProjeto(\'' + escHtml(p.ID_Projeto||'') + '\')">Ver projeto →</button>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    /* Paginação mobile */
+    if (totalPages > 1) {
+      var pgHtml = '<div style="display:flex;align-items:center;justify-content:center;gap:4px;padding:16px 0 8px">';
+      pgHtml += '<button class="pg-btn" onclick="irParaPagina('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+'>‹</button>';
+      buildPageRange(currentPage, totalPages).forEach(function(p) {
+        if (p==='…') pgHtml += '<span class="pg-ellipsis">…</span>';
+        else pgHtml += '<button class="pg-btn'+(p===currentPage?' active':'')+'" onclick="irParaPagina('+p+')">' + p + '</button>';
+      });
+      pgHtml += '<button class="pg-btn" onclick="irParaPagina('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+'>›</button>';
+      pgHtml += '</div>';
+      mobileList.innerHTML += pgHtml;
+    }
+  }
+}
+}
+
+function renderPaginationControls(totalPages) {
+  var el = document.getElementById('paginationControls');
+  var html = '<button class="pg-btn" onclick="irParaPagina('+(currentPage-1)+')" '+(currentPage<=1?'disabled':'')+'>‹</button>';
+  buildPageRange(currentPage, totalPages).forEach(function(p) {
+    if (p==='…') html += '<span class="pg-ellipsis">…</span>';
+    else html += '<button class="pg-btn'+(p===currentPage?' active':'')+'" onclick="irParaPagina('+p+')">' + p + '</button>';
+  });
+  html += '<button class="pg-btn" onclick="irParaPagina('+(currentPage+1)+')" '+(currentPage>=totalPages?'disabled':'')+'>›</button>';
+  el.innerHTML = html;
+}
+function buildPageRange(current, total) {
+  if (total <= 7) { var a=[]; for(var i=1;i<=total;i++) a.push(i); return a; }
+  var pages = [1];
+  if (current > 3) pages.push('…');
+  for (var p=Math.max(2,current-1); p<=Math.min(total-1,current+1); p++) pages.push(p);
+  if (current < total-2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+function irParaPagina(p) {
+  var total = Math.max(1, Math.ceil(projetosVisiveis.length / PER_PAGE));
+  if (p < 1 || p > total) return;
+  currentPage = p;
+  renderPagina();
+}
+
+// ── ELIMINAR ──
+function abrirModalEliminar(idProjeto) {
+  projetoParaEliminar = idProjeto;
+  document.getElementById('modal-projeto-id').textContent = idProjeto;
+  document.getElementById('btn-confirmar-eliminar').disabled = false;
+  document.getElementById('btn-confirmar-eliminar').textContent = 'Eliminar Projeto';
+  document.getElementById('modal-eliminar').style.display = 'flex';
+}
+function fecharModalEliminar() {
+  document.getElementById('modal-eliminar').style.display = 'none';
+  projetoParaEliminar = null;
+}
+function confirmarEliminar() {
+  if (!projetoParaEliminar) return;
+  var btn = document.getElementById('btn-confirmar-eliminar');
+  btn.disabled = true; btn.textContent = 'A eliminar...';
+  google.script.run
+    .withSuccessHandler(function() {
+      fecharModalEliminar();
+      window._projetosCache = null; window._projetosCacheTs = null;
+      carregarTodosProjetos();
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false; btn.textContent = 'Eliminar Projeto';
+      alert('Erro ao eliminar: ' + (err.message || err));
+    })
+    .eliminarProjeto(projetoParaEliminar);
+}
+document.getElementById('modal-eliminar').addEventListener('click', function(e){ if(e.target===this) fecharModalEliminar(); });
+
+// ── HELPERS ──
+function mostrarLoading() {
+  document.getElementById('tbody-projetos').innerHTML = '<tr class="loading-row"><td colspan="11"><div class="spinner-border spinner-border-sm text-dark me-2" role="status"></div>A carregar projetos...</td></tr>';
+  document.getElementById('badge-count').textContent = '— projetos';
+  var mobileList = document.getElementById('mobileProjetosList');
+  if (mobileList) mobileList.innerHTML = '<div style="text-align:center;padding:48px;color:var(--red);font-size:14px;font-weight:600;font-family:var(--fb);"><div class="spinner-border spinner-border-sm text-dark me-2" role="status"></div>A carregar projetos...</div>';
+}
+function mostrarErroTabela(msg) {
+  document.getElementById('tbody-projetos').innerHTML = '<tr><td colspan="11"><div class="estado-vazio"><strong>Erro ao carregar</strong><p>' + escHtml(msg) + '</p></div></td></tr>';
+}
+function statusBadge(status) {
+  var mapa = {
+    'Em Curso':   {cls:'status-em-curso',   dot:'●', label:'Em Curso'},
+    'Finalizado': {cls:'status-finalizado',  dot:'●', label:'Finalizado'},
+    'Cancelado':  {cls:'status-cancelado',   dot:'●', label:'Cancelado'}
+  };
+  var s = mapa[status] || {cls:'', dot:'●', label:status||'—'};
+  return '<span class="status-badge ' + s.cls + '"><span class="dot">' + s.dot + '</span>' + s.label + '</span>';
+}
+function iconeBool(valor) {
+  var ok = valor===true||valor==='true'||valor==='Sim'||valor===1||valor==='1';
+  return ok ? '<span class="icon-check" title="Sim">✓</span>' : '<span class="icon-dash" title="Não">—</span>';
+}
+function formatarData(data) {
+  if (!data) return '—';
+  var partes = String(data).split('-');
+  if (partes.length===3) return partes[2]+'/'+partes[1]+'/'+partes[0];
+  return data;
+}
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function verProjeto(idProjeto) {
+  var url = WU + '?page=editarProjeto&id=' + encodeURIComponent(idProjeto);
+  document.getElementById('loadingOverlay').classList.add('open');
+  window.open(url, '_top');
+}
+
+// ── ORDENAÇÃO ──
+var sortCol=null, sortDir='asc';
+var COL_KEYS={0:'ID_Projeto',1:'Local',2:'Nome_do_Evento',3:'Dia_Inicio',4:'Dia_Fim',5:'Status_Planeamento'};
+document.querySelectorAll('thead th.sortable').forEach(function(th){
+  th.addEventListener('click', function(){
+    var col=parseInt(th.dataset.col);
+    if(sortCol===col){sortDir=sortDir==='asc'?'desc':'asc';}else{sortCol=col;sortDir='asc';}
+    document.querySelectorAll('thead th.sortable').forEach(function(t){t.classList.remove('sort-asc','sort-desc');});
+    th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+    var chave=COL_KEYS[col];
+    var ordenados=[].concat(projetosVisiveis).sort(function(a,b){
+      var va=String(a[chave]||'').toLowerCase(), vb=String(b[chave]||'').toLowerCase();
+      if(va<vb) return sortDir==='asc'?-1:1;
+      if(va>vb) return sortDir==='asc'?1:-1;
+      return 0;
+    });
+    projetosVisiveis = ordenados;
+currentPage = 1;
+renderPagina();
+  });
+});
+
+// ── NAV / DRAWER ──
+function navTo(url) {
+  document.getElementById('loadingOverlay').classList.add('open');
+  window.open(url, '_top');
+}
+var drawerOpen=false;
+function toggleDrawer(){ drawerOpen?closeDrawer():openDrawer(); }
+function openDrawer(){ drawerOpen=true; document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('hamburger').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer(){ drawerOpen=false; document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('hamburger').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'){
+    if(drawerOpen) closeDrawer();
+    fecharFiltrosModal();
+    fecharModalEliminar();
+  }
+});
+
+// ── INIT ──
+carregarTodosProjetos();
+</script>
+</body>
+</html>

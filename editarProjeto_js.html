@@ -1,0 +1,855 @@
+<script>
+  var modoEdicao = false;
+var dadosOriginais = null;
+var projetoId = null;
+var PODE_ATUALIZAR = false;
+
+
+/* =========================================================
+   INIT
+   ========================================================= */
+window.initPagina = function() {
+  projetoId = window.parametrosRota?.id || null;
+  if (!projetoId) { mostrarErro("ID do projeto não fornecido."); return; }
+
+  google.script.run
+    .withSuccessHandler(function(sessao) {
+      PODE_EDITAR   = (sessao && sessao.role === 'admin');
+      PODE_ELIMINAR = (sessao && sessao.role === 'admin');
+      PODE_PDF      = (sessao && sessao.role === 'admin');
+      PODE_ATUALIZAR = (sessao && (sessao.role === 'admin' || sessao.role === 'gestor'));
+      carregarProjeto(projetoId);
+    })
+    .withFailureHandler(function() {
+      carregarProjeto(projetoId);
+    })
+    .getSessaoCliente();
+};
+
+function carregarProjeto(id) {
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('projeto-container').style.display = 'none';
+
+  google.script.run
+    .withSuccessHandler(function(dados) {
+  dadosOriginais = JSON.parse(JSON.stringify(dados));
+  document.body.classList.add('view-mode');
+  renderizarVistaBonita(dados);
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('projeto-container').style.display = 'block';
+
+  // Esconder botão Editar se status é bloqueante
+  var statusBloqueantes = ['Cancelado', 'Finalizado'];
+  var status = dados?.projeto?.Status_Planeamento;
+  document.getElementById('btn-pdf').style.display = PODE_PDF ? 'inline-flex' : 'none';
+document.getElementById('btn-eliminar-proj').style.display = PODE_ELIMINAR ? 'inline-flex' : 'none';
+document.getElementById('btn-editar').style.display = (PODE_EDITAR && !statusBloqueantes.includes(status)) ? 'inline-flex' : 'none';
+})
+    .withFailureHandler(function(err) {
+      document.getElementById('loading-state').style.display = 'none';
+      mostrarErro("Erro: " + err.message);
+    })
+    .obterProjeto(id);
+}
+
+/* =========================================================
+   MODOS — VISUALIZAÇÃO (com bloqueio de edição)
+   ========================================================= */
+function aplicarModoVisualizacao() {
+  modoEdicao = false;
+  document.getElementById('btn-guardar').style.display = 'none';
+  document.getElementById('btn-cancelar').style.display = 'none';
+  document.body.classList.add('view-mode');
+  document.getElementById('projeto-container').querySelectorAll('.secao-btn, .secao').forEach(el => el.style.display = 'none');
+  document.getElementById('sections-view').style.display = 'flex';
+
+  // Esconder botão Editar se status é bloqueante
+  var status = dadosOriginais?.projeto?.Status_Planeamento;
+  var statusBloqueantes = ['Cancelado', 'Finalizado'];
+  document.getElementById('btn-editar').style.display = (PODE_EDITAR && !statusBloqueantes.includes(status)) ? 'inline-flex' : 'none';
+}
+
+function ativarModoEdicao() {
+  modoEdicao = true;
+  document.getElementById('btn-editar').style.display = 'none';
+  document.getElementById('btn-guardar').style.display = 'inline-flex';
+  document.getElementById('btn-cancelar').style.display = 'inline-flex';
+  document.getElementById('btn-eliminar-proj').style.display = 'none'; // ADICIONAR
+  document.getElementById('btn-pdf').style.display = 'none';           // ADICIONAR
+  document.querySelector('.btn-back').style.display = 'none'; // ADICIONAR
+  document.body.classList.remove('view-mode');
+  document.getElementById('sections-view').style.display = 'none';
+  document.querySelectorAll('.secao-btn').forEach(el => el.style.display = 'block');
+  preencherFormulario(dadosOriginais);
+  document.querySelectorAll('input:not([name="ID_Projeto"]), select, textarea').forEach(el => { el.removeAttribute('readonly'); el.removeAttribute('disabled'); });
+  document.querySelectorAll('input[type="checkbox"]:not([name="ID_Projeto"])').forEach(el => el.removeAttribute('disabled'));
+  document.querySelectorAll('.btn-soft-primary, .btn-remove, .btn-xs').forEach(el => el.style.display = '');
+  document.querySelector("[name='ID_Projeto']")?.setAttribute('readonly', 'readonly');
+}
+
+function cancelarEdicao() {
+  if (PODE_ELIMINAR) document.getElementById('btn-eliminar-proj').style.display = 'inline-flex'; // ADICIONAR
+  if (PODE_PDF)      document.getElementById('btn-pdf').style.display = 'inline-flex';           // ADICIONAR
+  document.querySelector('.btn-back').style.display = ''; // ADICIONAR
+  aplicarModoVisualizacao();
+  renderizarVistaBonita(dadosOriginais);
+}
+
+function voltarListagem() { location.hash = 'projetos'; }
+
+/* =========================================================
+   GUARDAR — com confirmação de status Cancelado/Finalizado
+   ========================================================= */
+function guardarAlteracoes() {
+  var freeNr  = Number(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+  var subNr   = Number(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+  var temFree = document.getElementById("Tem_Freelancer")?.checked;
+  var temSub  = document.getElementById("Tem_Subcontratado")?.checked;
+
+  var avisos = [];
+  if (freeNr > 0 && !temFree) avisos.push('Informações Gerais indica ' + freeNr + ' freelancer(s) mas a secção "É necessário Freelancers?" não está ativa — os dados de freelancers serão apagados.');
+  if (subNr  > 0 && !temSub)  avisos.push('Informações Gerais indica ' + subNr  + ' subcontratado(s) mas a secção "É necessário Subcontratados?" não está ativa — os dados de subcontratados serão apagados.');
+  if (avisos.length > 0) mostrarErro('⚠️ Atenção: ' + avisos.join(' | '));
+
+  var nrFree = parseInt(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+  var listaFree = document.querySelectorAll("#listaFree .item-row").length;
+  if (listaFree !== nrFree) {
+    mostrarErro(`Existe uma discrepância entre o Nº de Freelancers das Informações Gerais (${nrFree}) e os Freelancers adicionados (${listaFree}).`);
+    return;
+  }
+
+  var nrSub = parseInt(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+  var listaSub = document.querySelectorAll("#listaSub .item-row").length;
+  if (listaSub !== nrSub) {
+    mostrarErro(`Existe uma discrepância entre o Nº de Subcontratados das Informações Gerais (${nrSub}) e os Subcontratados adicionados (${listaSub}).`);
+    return;
+  }
+
+    // ADICIONA AQUI:
+  var diaInicio = document.querySelector("[name='Dia_Inicio']")?.value;
+  var diaFim = document.querySelector("[name='Dia_Fim']")?.value;
+  if (diaInicio && diaFim && diaFim < diaInicio) {
+    mostrarErro("A data de fim não pode ser anterior à data de início do evento.");
+    return;
+  }
+  
+  // Verificar se o status foi alterado para Cancelado ou Finalizado
+  var novoStatus = document.querySelector("[name='Status_Planeamento']")?.value;
+  var statusAnterior = dadosOriginais?.projeto?.Status_Planeamento;
+  var statusBloqueantes = ['Cancelado', 'Finalizado'];
+
+  if (statusBloqueantes.includes(novoStatus) && novoStatus !== statusAnterior) {
+    // Mostrar modal de confirmação
+    abrirModalConfirmarStatus(novoStatus);
+    return;
+  }
+
+  executarGuardar();
+}
+
+function abrirModalConfirmarStatus(novoStatus) {
+  // Criar modal dinamicamente se não existir
+  var existente = document.getElementById('modal-confirmar-status');
+  if (existente) existente.remove();
+
+  var modal = document.createElement('div');
+  modal.id = 'modal-confirmar-status';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  modal.innerHTML =
+    '<div style="background:#fff;border-radius:16px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.2);">' +
+      '<div style="font-size:36px;text-align:center;margin-bottom:16px;">' + (novoStatus === 'Finalizado' ? '✅' : '🚫') + '</div>' +
+      '<h3 style="margin:0 0 10px;font-size:18px;font-weight:700;color:#111827;text-align:center;">Alterar status para "' + novoStatus + '"?</h3>' +
+      '<p style="margin:0 0 24px;font-size:14px;color:#6b7280;text-align:center;line-height:1.5;">Após esta alteração, <strong>já não será possível editar o projeto</strong>.</p>' +
+      '<div style="display:flex;gap:10px;justify-content:center;">' +
+        '<button onclick="fecharModalConfirmarStatus()" style="padding:10px 20px;border-radius:8px;border:1px solid #d1d5db;background:#f3f4f6;color:#374151;font-weight:600;cursor:pointer;font-size:14px;">Cancelar</button>' +
+        '<button onclick="confirmarAlteracaoStatus()" style="padding:10px 20px;border-radius:8px;border:none;background:' + (novoStatus === 'Finalizado' ? '#16a34a' : '#dc2626') + ';color:#fff;font-weight:600;cursor:pointer;font-size:14px;">Alterar Status</button>' +
+      '</div>' +
+    '</div>';
+
+  modal.onclick = function(e) { if (e.target === modal) fecharModalConfirmarStatus(); };
+  document.body.appendChild(modal);
+}
+
+function fecharModalConfirmarStatus() {
+  var modal = document.getElementById('modal-confirmar-status');
+  if (modal) modal.remove();
+}
+
+function confirmarAlteracaoStatus() {
+  fecharModalConfirmarStatus();
+  executarGuardar();
+}
+
+function executarGuardar() {
+  var dados = recolherDadosProjeto();
+  var btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.innerHTML = '<span>A guardar...</span>';
+
+  google.script.run
+    .withSuccessHandler(function() {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Guardar Alterações';
+      modoEdicao = false;
+      var statusAtual = dadosOriginais?.projeto?.Status_Planeamento;
+      var statusBloqueantes = ['Cancelado', 'Finalizado'];
+      document.getElementById('btn-editar').style.display =
+        (PODE_EDITAR && !statusBloqueantes.includes(statusAtual)) ? 'inline-flex' : 'none';
+      document.querySelector('.btn-back').style.display = '';
+      document.getElementById('btn-guardar').style.display = 'none';
+      document.getElementById('btn-cancelar').style.display = 'none';
+      document.body.classList.add('view-mode');
+      carregarProjeto(projetoId);
+
+      // Disparar after em background — não bloqueia o ecrã
+      google.script.run.atualizarProjetoAfter(projetoId);
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Guardar Alterações';
+      mostrarErro("Erro: " + err.message);
+    })
+    .atualizarProjeto(projetoId, dados);
+}
+/* =========================================================
+   PREENCHER FORMULÁRIO
+   ========================================================= */
+function preencherFormulario(dados) {
+  ['sec-geral','sec-alimentacao','sec-alojamento','sec-freelancers','sec-subcontratados','sec-viaturas'].forEach(s => {
+    carregarSecao(s); document.getElementById(s).dataset.loaded = "1";
+  });
+
+  document.getElementById('sec-equipamento').dataset.loaded = "1";
+
+  setTimeout(() => {
+    preencherDadosGerais(dados.projeto);
+    if (dados.alimentacao?.length)    preencherAlimentacao(dados.alimentacao);
+    if (dados.alojamento)             preencherAlojamento(dados.alojamento);
+    if (dados.freelancers?.length)    preencherFreelancers(dados.freelancers);
+    if (dados.subcontratados?.length) preencherSubcontratados(dados.subcontratados);
+    if (dados.viaturas?.length)       preencherViaturas(dados.viaturas);
+    carregarSecaoEquipamento(dados.projeto.ID_Projeto);
+  }, 200);
+}
+
+function preencherDadosGerais(p) {
+  document.querySelector("[name='ID_Projeto']").value         = p.ID_Projeto || "";
+  document.querySelector("[name='Local']").value              = p.Local || "";
+  document.querySelector("[name='Nome_do_Evento']").value     = p.Nome_do_Evento || "";
+  document.querySelector("[name='Dia_Inicio']").value         = p.Dia_Inicio || "";
+  document.querySelector("[name='Dia_Fim']").value            = p.Dia_Fim || "";
+  document.querySelector("[name='Rigging_Nr']").value         = p.Rigging_Nr || 0;
+  document.querySelector("[name='Video_Nr']").value           = p.Video_Nr || 0;
+  document.querySelector("[name='Som_Nr']").value             = p.Som_Nr || 0;
+  document.querySelector("[name='Iluminacao_Nr']").value      = p.Iluminacao_Nr || 0;
+  document.querySelector("[name='Estruturas_Nr']").value      = p.Estruturas_Nr || 0;
+  document.querySelector("[name='Freelancers_Nr']").value     = p.Freelancers_Nr || 0;
+  document.querySelector("[name='Subcontratados_Nr']").value  = p.Subcontratados_Nr || 0;
+  document.querySelector("[name='Status_Planeamento']").value = p.Status_Planeamento || "Em Curso";
+}
+
+function preencherAlimentacao(alim) {
+  if (!alim || alim.length === 0) return;
+  document.getElementById("Tem_Alimentacao").checked = true;
+  document.getElementById("Tem_Alimentacao").dispatchEvent(new Event("change"));
+  var locaisMapa = {};
+  alim.forEach(reg => {
+    var key = reg.Local + "|" + (reg.Nome_Restaurante || "");
+    if (!locaisMapa[key]) locaisMapa[key] = { local: reg.Local, nomeRest: reg.Nome_Restaurante, localRest: reg.Local_Restaurante || "", dias: [] };
+    locaisMapa[key].dias.push(reg);
+  });
+  Object.values(locaisMapa).forEach(grupo => {
+    addAlimLocal();
+    var b = document.querySelector("#alimLocais .bloco:last-child");
+    b.querySelector("select").value = grupo.local;
+    if (grupo.local === "Restaurante") {
+      var ri = b.querySelector("input[placeholder='Nome do Restaurante']");
+      ri.style.display = "block"; ri.value = grupo.nomeRest;
+      var lw = b.querySelector("[id^='local-rest-wrap_']");
+      if (lw) { lw.style.display = "block"; lw.querySelector("input").value = grupo.localRest || ""; }
+    }
+    var dc = b.querySelector("[id^='dias_']"); dc.innerHTML = "";
+    grupo.dias.forEach(d => {
+      addAlimDia(dc.id.replace("dias_", ""));
+      var ud = dc.querySelector(".item-row:last-child");
+      var inp = ud.querySelectorAll("input");
+      inp[0].value = d.Dia || ""; inp[1].value = d.Nr_Pessoas || 0;
+      inp[2].checked = d.Almoco; inp[3].checked = d.Jantar; inp[4].checked = d.Reservado;
+    });
+  });
+}
+
+function preencherAlojamento(aloj) {
+  document.getElementById("Tem_Alojamento").checked = true;
+  document.getElementById("Tem_Alojamento").dispatchEvent(new Event("change"));
+  document.querySelector("[name='Nome_Alojamento']").value = aloj.Nome_Alojamento || "";
+  document.querySelector("[name='Local_Alojamento']").value = aloj.Local_Alojamento || "";
+  document.querySelector("[name='Alojamento_Reservado']").checked = aloj.Alojamento_Reservado || false;
+  if (aloj.periodos?.length) {
+    var c = document.getElementById("alojPeriodos");
+    aloj.periodos.forEach(p => {
+      var r = document.createElement("div"); r.className = "item-row";
+      r.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; flex:1;">
+          <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Check in</label>
+          <input type="date" class="form-control" name="Checkin" value="${p.Checkin||''}">
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; flex:1;">
+          <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Check out</label>
+          <input type="date" class="form-control" name="Checkout" value="${p.Checkout||''}">
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <label style="font-size:13px; color:#6b7280; white-space:nowrap;">Pessoas</label>
+          <input type="number" class="form-control" name="Nr_Pessoas_Alojamento" min="0" style="width:90px;" value="${p.Nr_Pessoas_Alojamento||0}">
+        </div>
+        <button type="button" class="btn-remove" onclick="this.closest('.item-row').remove()">Remover</button>
+      `;
+      c.appendChild(r);
+    });
+  }
+}
+
+function preencherFreelancers(free) {
+  document.getElementById("Tem_Freelancer").checked = true;
+  document.getElementById("Tem_Freelancer").dispatchEvent(new Event("change"));
+  free.forEach(f => {
+    addFree();
+    var ul = document.querySelector("#listaFree .item-row:last-child");
+    ul.querySelector("input").value = f.Nome_Freelancer || "";
+    ul.querySelector("select").value = f.Freelancer_Confirmado || "Em análise";
+  });
+  updateFreelancersBadge();
+}
+
+function preencherSubcontratados(sub) {
+  document.getElementById("Tem_Subcontratado").checked = true;
+  document.getElementById("Tem_Subcontratado").dispatchEvent(new Event("change"));
+  sub.forEach(s => {
+    addSub();
+    var ul = document.querySelector("#listaSub .item-row:last-child");
+    ul.querySelector("input").value = s.Nome_Subcontratado || "";
+    ul.querySelector("select").value = s.Subcontratado_Confirmado || "Em análise";
+  });
+  updateSubcontratadosBadge();
+}
+
+function preencherViaturas(viat) {
+  document.getElementById("EstacReserv").checked = dadosOriginais.projeto.Estacionamento_Reservado || false;
+  viat.forEach(v => {
+    addVia();
+    document.querySelector("#listaVia .item-row:last-child select").value = v.Viatura || "";
+  });
+}
+
+/* =========================================================
+   VIEW MODE — ACCORDION BONITO
+   ========================================================= */
+function toggleVmSection(id) {
+  document.getElementById(id).classList.toggle('open');
+}
+
+function formatDate(str) {
+  if (!str) return '—';
+  try {
+    var d = new Date(str);
+    return d.toLocaleDateString('pt-PT', { day: '2-digit', month: 'long', year: 'numeric' });
+  } catch(e) { return str; }
+}
+
+function renderizarVistaBonita(dados) {
+  var container = document.getElementById('sections-view');
+  if (!container) return;
+  container.innerHTML = '';
+  container.style.display = 'flex';
+  container.appendChild(vmSectionGeral(dados.projeto));
+  container.appendChild(vmSectionAlimentacao(dados.alimentacao));
+  container.appendChild(vmSectionAlojamento(dados.alojamento));
+  container.appendChild(vmSectionFreelancers(dados.freelancers));
+  container.appendChild(vmSectionSubcontratados(dados.subcontratados));
+  container.appendChild(vmSectionViaturas(dados.viaturas, dados.projeto));
+  container.appendChild(vmSectionEquipamento(projetoId, dados.equipamento || [])); // ← passa os dados
+}
+
+function vmSection(id, iconClass, iconEmoji, title, subtitle, badgeClass, badgeText, bodyHtml, startOpen) {
+  var div = document.createElement('div');
+  div.className = 'vm-section' + (startOpen ? ' open' : '');
+  div.id = 'vm-' + id;
+  div.innerHTML =
+    '<div class="vm-section-header" onclick="toggleVmSection(\'vm-' + id + '\')">' +
+      '<div class="vm-title-wrap">' +
+        '<div class="vm-icon ' + iconClass + '">' + iconEmoji + '</div>' +
+        '<div><div class="vm-title">' + title + '</div><div class="vm-subtitle">' + subtitle + '</div></div>' +
+      '</div>' +
+      '<div class="vm-header-right">' +
+        '<span class="vm-badge ' + badgeClass + '">' + badgeText + '</span>' +
+        '<div class="vm-chevron">⌄</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="vm-body">' + bodyHtml + '</div>';
+  return div;
+}
+
+function vmSectionGeral(p) {
+  if (!p) return vmSection('geral','vm-icon-green','📋','Informações Gerais','Detalhes e equipa','vm-badge-off','—','', true);
+  var statusMap = { 'Em Curso': 'vm-pill-amber', 'Finalizado': 'vm-pill-green', 'Cancelado': 'vm-pill-gray' };
+  var staffMap = [['Rigging',p.Rigging_Nr],['Vídeo',p.Video_Nr],['Som',p.Som_Nr],['Iluminação',p.Iluminacao_Nr],['Estruturas',p.Estruturas_Nr],['Freelancers',p.Freelancers_Nr],['Subcontratados',p.Subcontratados_Nr]];
+  var chips = staffMap.filter(([,n]) => n > 0).map(([l,n]) =>
+    '<div class="vm-staff-chip"><span class="vm-chip-num">' + n + '</span><span class="vm-chip-label">' + l + '</span></div>'
+  ).join('') || '<span style="color:#8a8680;font-size:13px">Sem equipa definida</span>';
+  var body =
+    '<div class="vm-info-grid">' +
+      '<div><div class="vm-info-label">Nº do Projeto</div><div class="vm-info-value large">' + (p.ID_Projeto||'—') + '</div></div>' +
+      '<div><div class="vm-info-label">Nome do Evento</div><div class="vm-info-value">' + (p.Nome_do_Evento||'—') + '</div></div>' +
+      '<div><div class="vm-info-label">Local</div><div class="vm-info-value">' + (p.Local||'—') + '</div></div>' +
+      '<div><div class="vm-info-label">Status</div><div class="vm-info-value"><span class="vm-pill ' + (statusMap[p.Status_Planeamento]||'vm-pill-gray') + '">' + (p.Status_Planeamento||'—') + '</span></div></div>' +
+      '<div><div class="vm-info-label">Dia de Início</div><div class="vm-info-value">' + formatDate(p.Dia_Inicio) + '</div></div>' +
+      '<div><div class="vm-info-label">Dia de Fim</div><div class="vm-info-value">' + formatDate(p.Dia_Fim) + '</div></div>' +
+    '</div>' +
+    '<hr class="vm-divider">' +
+    '<div class="vm-info-label" style="margin-bottom:12px">Equipa</div>' +
+    '<div class="vm-staff-grid">' + chips + '</div>';
+  return vmSection('geral','vm-icon-green','📋','Informações Gerais','Detalhes e equipa','vm-badge-off','—', body, true);
+}
+
+function vmSectionAlimentacao(alim) {
+  if (!alim || alim.length === 0) {
+    var body = '<div class="vm-empty"><span>🍽️</span><span>Não foi escolhida alimentação para este projeto.</span></div>';
+    return vmSection('alimentacao','vm-icon-amber','🍽️','Alimentação','Refeições e locais','vm-badge-off','Não configurado', body, false);
+  }
+  var todasReservadas = alim.every(r => r.Reservado);
+  var badgeClass = todasReservadas ? 'vm-badge-ok' : 'vm-badge-warn';
+  var badgeText  = alim.length + (alim.length === 1 ? ' refeição' : ' refeições');
+  var body = alim.map(r => {
+    var pills = (r.Almoco ? '<span class="vm-pill vm-pill-blue">Almoço</span>' : '') + (r.Jantar ? '<span class="vm-pill vm-pill-amber">Jantar</span>' : '');
+    if (!pills) pills = '<span class="vm-pill vm-pill-gray">Sem refeições</span>';
+    var localLabel = r.Local + (r.Nome_Restaurante ? ' · ' + r.Nome_Restaurante : '');
+    return '<div class="vm-meal-row">' +
+      '<div><div class="vm-meal-loc">' + localLabel + '</div><div class="vm-meal-date">' + formatDate(r.Dia) + ' · ' + (r.Nr_Pessoas||0) + ' pessoas</div></div>' +
+      '<div class="vm-meal-pills">' + pills + '</div>' +
+      '<div class="vm-reserved ' + (r.Reservado?'yes':'') + '">' + (r.Reservado?'✓ Reservado':'✗ Não reservado') + '</div>' +
+    '</div>';
+  }).join('');
+  return vmSection('alimentacao','vm-icon-amber','🍽️','Alimentação','Refeições e locais', badgeClass, badgeText, body, false);
+}
+
+function vmSectionAlojamento(aloj) {
+  if (!aloj) {
+    var body = '<div class="vm-empty"><span>🏨</span><span>Não foi escolhido alojamento para este projeto.</span></div>';
+    return vmSection('alojamento','vm-icon-blue','🏨','Alojamento','Check-in e check-out','vm-badge-off','Não configurado', body, false);
+  }
+  var periodos = aloj.periodos || [];
+  if (periodos.length === 0) {
+    var body = '<div class="vm-partial">⚠️ <span>Alojamento configurado mas sem períodos adicionados.</span></div>';
+    return vmSection('alojamento','vm-icon-blue','🏨','Alojamento','Check-in e check-out','vm-badge-warn','Pendente', body, false);
+  }
+  var reservado = aloj.Alojamento_Reservado;
+  var badgeClass = reservado ? 'vm-badge-ok' : 'vm-badge-warn';
+  var badgeText  = reservado ? 'Reservado' : 'Não reservado';
+  var rows = periodos.map(p =>
+    '<div class="vm-stay-table-row">' +
+      '<span><strong>' + formatDate(p.Checkin) + '</strong> → <strong>' + formatDate(p.Checkout) + '</strong></span>' +
+      '<span style="color:#8a8680">👥 ' + (p.Nr_Pessoas_Alojamento||0) + ' pessoas</span>' +
+    '</div>'
+  ).join('');
+  var body =
+    '<div class="vm-stay-hotel-header">' +
+      '<div class="vm-stay-hotel-info"><div style="font-size:24px">🏨</div>' +
+        '<div><div class="vm-stay-name">' + (aloj.Nome_Alojamento||'—') + '</div>' +
+        '<div class="vm-stay-loc">📍 ' + (aloj.Local_Alojamento||'—') + '</div></div>' +
+      '</div>' +
+      '<span class="vm-reserved ' + (reservado?'yes':'') + '" style="margin-left:0">' + (reservado?'✓ Reservado':'✗ Não reservado') + '</span>' +
+    '</div>' +
+    '<div class="vm-stay-table"><div class="vm-stay-table-header"><span>Check-in → Check-out</span><span>Pessoas</span></div>' + rows + '</div>';
+  return vmSection('alojamento','vm-icon-blue','🏨','Alojamento','Check-in e check-out', badgeClass, badgeText, body, false);
+}
+
+function vmSectionFreelancers(free) {
+  if (!free || free.length === 0) {
+    var body = '<div class="vm-empty"><span>👤</span><span>Não foram escolhidos freelancers para este projeto.</span></div>';
+    return vmSection('freelancers','vm-icon-purple','👤','Freelancers','Confirmações','vm-badge-off','Não configurado', body, false);
+  }
+  var todosConfirmados = free.every(f => f.Freelancer_Confirmado === 'Confirmado');
+  var pendentes = free.filter(f => f.Freelancer_Confirmado !== 'Confirmado').length;
+  var badgeClass = todosConfirmados ? 'vm-badge-ok' : 'vm-badge-warn';
+  var badgeText  = todosConfirmados ? 'Todos confirmados' : pendentes + ' pendente' + (pendentes > 1 ? 's' : '');
+  var partial = !todosConfirmados ? '<div class="vm-partial">⚠️ <span>Nem todos os freelancers estão confirmados.</span></div>' : '';
+  var rows = free.map(f => {
+    var s = f.Freelancer_Confirmado || 'Em análise';
+    var c = s === 'Confirmado' ? 'vm-pill-green' : s === 'Rejeitado' ? 'vm-pill-red' : 'vm-pill-amber';
+    return '<div class="vm-person-row"><span>' + (f.Nome_Freelancer||'—') + '</span><span class="vm-pill ' + c + '">' + s + '</span></div>';
+  }).join('');
+  return vmSection('freelancers','vm-icon-purple','👤','Freelancers','Confirmações', badgeClass, badgeText, partial + rows, false);
+}
+
+function vmSectionSubcontratados(sub) {
+  if (!sub || sub.length === 0) {
+    var body = '<div class="vm-empty"><span>🏢</span><span>Não foram escolhidos subcontratados para este projeto.</span></div>';
+    return vmSection('subcontratados','vm-icon-red','🏢','Subcontratados','Empresas externas','vm-badge-off','Não configurado', body, false);
+  }
+  var todosConfirmados = sub.every(s => s.Subcontratado_Confirmado === 'Confirmado');
+  var pendentes = sub.filter(s => s.Subcontratado_Confirmado !== 'Confirmado').length;
+  var badgeClass = todosConfirmados ? 'vm-badge-ok' : 'vm-badge-warn';
+  var badgeText  = todosConfirmados ? 'Todos confirmados' : pendentes + ' pendente' + (pendentes > 1 ? 's' : '');
+  var partial = !todosConfirmados ? '<div class="vm-partial">⚠️ <span>Nem todos os subcontratados estão confirmados.</span></div>' : '';
+  var rows = sub.map(s => {
+    var st = s.Subcontratado_Confirmado || 'Em análise';
+    var c  = st === 'Confirmado' ? 'vm-pill-green' : st === 'Rejeitado' ? 'vm-pill-red' : 'vm-pill-amber';
+    return '<div class="vm-person-row"><span>' + (s.Nome_Subcontratado||'—') + '</span><span class="vm-pill ' + c + '">' + st + '</span></div>';
+  }).join('');
+  return vmSection('subcontratados','vm-icon-red','🏢','Subcontratados','Empresas externas', badgeClass, badgeText, partial + rows, false);
+}
+
+function vmSectionViaturas(viat, projeto) {
+  if (!viat || viat.length === 0) {
+    var body = '<div class="vm-empty"><span>🚐</span><span>Não foram escolhidas viaturas para este projeto.</span></div>';
+    return vmSection('viaturas','vm-icon-slate','🚐','Viaturas','Transporte e estacionamento','vm-badge-off','Não configurado', body, false);
+  }
+  var estac = projeto && projeto.Estacionamento_Reservado;
+  var badgeClass = estac ? 'vm-badge-ok' : 'vm-badge-warn';
+  var badgeText  = viat.length + ' viatura' + (viat.length > 1 ? 's' : '');
+  var iconMap = { 'Peugeot 208': '🚗', 'Partner': '🚗' };
+  var parking =
+    '<div class="vm-parking-badge">' +
+      '<span style="font-size:13px;font-weight:500;color:#8a8680">Estacionamento (todas as viaturas)</span>' +
+      '<span class="vm-reserved ' + (estac?'yes':'') + '" style="margin-left:0">' + (estac?'✓ Reservado':'✗ Não reservado') + '</span>' +
+    '</div>';
+  var rows = viat.map(v =>
+    '<div class="vm-vehicle-row"><span style="font-size:18px">' + (iconMap[v.Viatura]||'🚐') + '</span>' +
+    '<span style="font-weight:600">' + v.Viatura + '</span></div>'
+  ).join('');
+  return vmSection('viaturas','vm-icon-slate','🚐','Viaturas','Transporte e estacionamento', badgeClass, badgeText, parking + rows, false);
+}
+
+/* =========================================================
+   EXPORTAR PDF
+   ========================================================= */
+function exportarPDF() {
+  var btn = document.getElementById('btn-pdf');
+  btn.disabled = true;
+  btn.innerHTML = '<span>A gerar PDF...</span>';
+
+  google.script.run
+    .withSuccessHandler(function(base64) {
+      var byteChars = atob(base64);
+      var byteNums  = new Array(byteChars.length);
+      for (var i = 0; i < byteChars.length; i++) byteNums[i] = byteChars.charCodeAt(i);
+      var byteArray = new Uint8Array(byteNums);
+      var blob = new Blob([byteArray], { type: 'application/pdf' });
+      var url  = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      var nome = 'Planeamento_' + (dadosOriginais?.projeto?.ID_Projeto || 'projeto') + '.pdf';
+      link.href = url;
+      link.download = nome;
+      link.click();
+      URL.revokeObjectURL(url);
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Exportar PDF';
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Exportar PDF';
+      mostrarErro('Erro ao gerar PDF: ' + err.message);
+    })
+    .gerarPDFProjeto(projetoId);
+}
+
+/* =========================================================
+
+   ELIMINAR PROJETO
+   ========================================================= */
+window.abrirModalEliminar = function() {
+  var modal = document.getElementById('modal-eliminar');
+  var btn   = document.getElementById('btn-confirmar-eliminar');
+  btn.disabled = false;
+  btn.textContent = 'Eliminar Projeto';
+  modal.style.display = 'flex';
+
+  // Fechar ao clicar fora
+  modal.onclick = function(e) { if (e.target === modal) fecharModalEliminar(); };
+};
+
+window.fecharModalEliminar = function() {
+  document.getElementById('modal-eliminar').style.display = 'none';
+};
+
+window.confirmarEliminar = function() {
+  if (!projetoId) return;
+  var btn = document.getElementById('btn-confirmar-eliminar');
+  btn.disabled = true;
+  btn.textContent = 'A eliminar...';
+
+  google.script.run
+    .withSuccessHandler(function() {
+      fecharModalEliminar();
+      voltarListagem();
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'Eliminar Projeto';
+      mostrarErro('Erro ao eliminar: ' + (err.message || err));
+    })
+    .eliminarProjeto(projetoId);
+};
+
+/* =========================================================
+   VIEW MODE — SECÇÃO EQUIPAMENTO (Flex)
+   ========================================================= */
+function vmSectionEquipamento(idProjeto, linhasIniciais) {
+  var div = document.createElement('div');
+  div.className = 'vm-section';
+  div.id = 'vm-equipamento';
+  div.innerHTML =
+    '<div class="vm-section-header" onclick="toggleVmSection(\'vm-equipamento\')">' +
+      '<div class="vm-title-wrap">' +
+        '<div class="vm-icon vm-icon-slate">🎛️</div>' +
+        '<div>' +
+          '<div class="vm-title">Equipamento</div>' +
+          '<div class="vm-subtitle">Material técnico do Flex</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="vm-header-right">' +
+        '<span id="vm-equip-badge" class="vm-badge vm-badge-off">Flex</span>' +
+        '<div class="vm-chevron">⌄</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="vm-body">' +
+      '<div id="vm-equip-content">' +
+        '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">' +
+          '<span style="font-size:13px; color:#6b7280;">Equipamento importado do Flex Rental Solutions</span>' +
+          '<button id="vm-btn-carregar-equip" type="button" class="btn btn-soft-primary btn-sm" ' +
+            'style="display:none;" onclick="vmCarregarEquipamento(\'' + idProjeto + '\')">' +
+          '</button>' +
+        '</div>' +
+        '<div id="vm-equip-loading" style="display:none; padding:10px 0; color:#6b7280; font-size:13px;">' +
+          '<span class="spinner-border spinner-border-sm me-2"></span> A carregar do Flex...' +
+        '</div>' +
+        '<div id="vm-equip-erro" style="display:none; padding:10px 14px; background:#fef2f2; ' +
+          'border:1px solid #fecaca; border-radius:8px; color:#991b1b; font-size:13px; margin-top:8px;"></div>' +
+        '<div id="vm-equip-tabela"></div>' +
+      '</div>' +
+    '</div>';
+
+  // Usar dados que já vieram no obterProjeto — zero chamadas extra
+  var badge  = div.querySelector('#vm-equip-badge');
+  var btn    = div.querySelector('#vm-btn-carregar-equip');
+  var tabela = div.querySelector('#vm-equip-tabela');
+
+  if (linhasIniciais && linhasIniciais.length > 0) {
+    var totalItens = linhasIniciais.filter(function(l) { return !l.group; }).length;
+    badge.textContent = totalItens + ' item(s)';
+    badge.className = 'vm-badge vm-badge-ok';
+    btn.textContent = '↻ Atualizar';
+btn.style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+vmRenderizarEquipamento(linhasIniciais, tabela);
+  } else {
+    badge.textContent = 'Sem dados';
+    btn.textContent = '+ Carregar do Flex';
+btn.style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none';
+  }
+
+  return div;
+}
+
+window.vmCarregarEquipamento = function(idProjeto) {
+  var loading = document.getElementById('vm-equip-loading');
+  var erro    = document.getElementById('vm-equip-erro');
+  var tabela  = document.getElementById('vm-equip-tabela');
+  var btn     = document.getElementById('vm-btn-carregar-equip');
+  var badge   = document.getElementById('vm-equip-badge');
+
+  if (erro)    { erro.style.display = 'none'; erro.textContent = ''; }
+  if (tabela)  tabela.innerHTML = '';
+  if (loading) { loading.style.display = 'block'; }
+  if (btn)     btn.style.display = 'none';
+
+  // Carregar do Flex E gravar na sheet
+  google.script.run
+    .withSuccessHandler(function(linhas) {
+      if (loading) loading.style.display = 'none';
+      if (!linhas || linhas.length === 0) {
+        if (erro) { erro.textContent = '⚠️ Não foram encontrados itens no Flex.'; erro.style.display = 'block'; }
+        if (btn)  { btn.textContent = '+ Carregar do Flex'; btn.style.display = 'inline-flex'; }
+        return;
+      }
+      var totalItens = linhas.filter(function(l) { return !l.group; }).length;
+      if (badge) { badge.textContent = totalItens + ' item(s)'; badge.className = 'vm-badge vm-badge-ok'; }
+      if (btn)   { btn.textContent = '↻ Atualizar'; btn.style.display = (typeof PODE_ATUALIZAR !== 'undefined' && PODE_ATUALIZAR) ? 'inline-flex' : 'none'; }
+      vmRenderizarEquipamento(linhas, tabela);
+
+      // ── Passo 2: atualizar tab do Excel no Drive (silencioso) ──
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.ok && typeof mostrarToast === 'function') {
+            mostrarToast('✓ Excel atualizado no Drive (' + (res.total || 0) + ' itens)', 'sucesso');
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.warn('Drive sync falhou:', err.message || err);
+        })
+        .refreshEquipamentoFlex(idProjeto);
+    })
+    .withFailureHandler(function(err) {
+      if (loading) loading.style.display = 'none';
+      if (erro) { erro.textContent = '⚠️ Erro: ' + (err.message || err); erro.style.display = 'block'; }
+      if (btn)  btn.style.display = 'inline-flex';
+    })
+    .carregarEGravarEquipamentoFlex(idProjeto);
+};
+
+// ══════════════════════════════════════════════════════════════
+// FICHEIRO: detalhe_projeto_js
+// Substituir: vmRenderizarEquipamento + vmToggleGrupo + vmToggleSub
+// Fix: hierarquia multinível com tabela plana (sem nested tables)
+// ══════════════════════════════════════════════════════════════
+
+function vmRenderizarEquipamento(linhas, container) {
+  var grupos = {};
+  var itensPorId = {};
+  var itensSoltos = [];
+
+  linhas.forEach(function(l) {
+  if (l.group === true) grupos[l.id] = { name: l.name, facility: l.facility || '', itens: [] };
+});
+  linhas.forEach(function(l) {
+    if (l.group === true) return;
+    if (!l.parentId || l.parentId === 'undefined' || l.parentId === 'null') l.parentId = null;
+    itensPorId[l.id] = l;
+  });
+  linhas.forEach(function(l) {
+    if (l.group === true || !l.parentId) return;
+    var pai = itensPorId[l.parentId];
+    if (pai) {
+      if (!pai._children) pai._children = [];
+      pai._children.push(l);
+    }
+  });
+  linhas.forEach(function(l) {
+    if (l.group === true || l.parentId) return;
+    var g = grupos[l.rootLineId];
+    if (g) g.itens.push(l);
+    else itensSoltos.push(l);
+  });
+
+  var html = '';
+  var totalItens = 0;
+
+  function achatar(item, nivel, resultado) {
+    totalItens++;
+    resultado.push({ item: item, nivel: nivel });
+    if (item._children && item._children.length > 0) {
+      item._children
+        .sort(function(a, b) { return (a.ordinal || 0) - (b.ordinal || 0); })
+        .forEach(function(filho) { achatar(filho, nivel + 1, resultado); });
+    }
+  }
+
+  function renderGrupo(nome, itens, facility) {
+    if (itens.length === 0) return '';
+    var gId = 'vmg_' + Math.random().toString(36).slice(2);
+
+    var plano = [];
+    itens
+      .sort(function(a, b) { return (a.ordinal || 0) - (b.ordinal || 0); })
+      .forEach(function(item) { achatar(item, 0, plano); });
+
+    var linhasHTML = '';
+    plano.forEach(function(entry) {
+      var item  = entry.item;
+      var nivel = entry.nivel;
+      var qty   = item.quantity % 1 === 0 ? parseInt(item.quantity) : item.quantity;
+      var nota  = (item.note || '').trim();
+      var temFilhos = item._children && item._children.length > 0;
+      var subId = temFilhos ? ('vmsubx_' + item.id.replace(/[^a-z0-9]/gi, '_')) : '';
+      var pl    = 10 + nivel * 20;
+      var bg    = nivel > 0 ? 'background:#f9fafb;' : '';
+
+      var ancestors = [];
+      var cur = item;
+      while (cur.parentId && itensPorId[cur.parentId]) {
+        var p = itensPorId[cur.parentId];
+        if (p._children && p._children.length > 0) {
+          ancestors.push('vmsubx_' + p.id.replace(/[^a-z0-9]/gi, '_'));
+        }
+        cur = p;
+      }
+
+      linhasHTML += '<tr' +
+        (ancestors.length ? ' class="child-of ' + ancestors.join(' ') + '" style="display:none;"' : '') +
+        '>' +
+        '<td style="padding:7px 10px 7px ' + pl + 'px;' + bg + 'border:1px solid #e5e7eb;color:#111827;font-size:.875rem;">' +
+          (temFilhos
+            ? '<span id="vmarr_' + subId + '" onclick="vmToggleSub(\'' + subId + '\',\'' + gId + '\')" style="cursor:pointer;margin-right:6px;font-size:.7rem;color:#6b7280;display:inline-block;transition:transform .15s;">▶</span>'
+            : (nivel > 0 ? '<span style="margin-right:6px;color:#d1d5db;">└</span>' : '')) +
+          escHtml(item.name || '—') +
+        '</td>' +
+        '<td style="' + bg + 'padding:7px 10px;border:1px solid #e5e7eb;color:#6b7280;font-size:.875rem;">' +
+  (nota ? (nota.startsWith('http') ? '<a href="' + escHtml(nota) + '" target="_blank" style="color:#6b7280;text-decoration:underline;font-size:14px;font-family:Inter,system-ui,sans-serif;">Ver link</a>' : escHtml(nota)) : '—') +
+'</td>' +
+        '<td style="' + bg + 'padding:7px 10px;border:1px solid #e5e7eb;text-align:center;font-weight:600;color:#374151;font-size:.875rem;">' +
+          qty +
+        '</td>' +
+      '</tr>';
+    });
+
+    return '<div class="vm-person-row" style="flex-direction:column;align-items:stretch;padding:0;margin-bottom:12px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">' +
+      '<div onclick="vmToggleGrupo(\'' + gId + '\')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;user-select:none;">' +
+        '<span style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--primary);">' + escHtml(nome) + (facility ? ' <span style="font-size:.7rem;font-weight:400;color:#9ca3af;text-transform:none;letter-spacing:0;">📍 ' + escHtml(facility) + '</span>' : '') + '</span>' +
+        '<span style="font-size:.75rem;color:#9ca3af;font-weight:500;">' + plano.length + ' item(s)</span>' +
+      '</div>' +
+      '<div id="' + gId + '" style="max-height:0;overflow:hidden;transition:max-height .25s ease;">' +
+        '<table style="width:100%;border-collapse:collapse;table-layout:fixed;">' +
+          '<colgroup><col style="width:55%;"><col style="width:30%;"><col style="width:80px;"></colgroup>' +
+          '<thead><tr>' +
+            '<th style="text-align:left;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Nome</th>' +
+            '<th style="text-align:left;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Notas</th>' +
+            '<th style="width:80px;text-align:center;padding:6px 10px;background:#f3f4f6;border:1px solid #e5e7eb;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:#6b7280;font-weight:600;">Qtd.</th>' +
+          '</tr></thead>' +
+          '<tbody>' + linhasHTML + '</tbody>' +
+        '</table>' +
+      '</div>' +
+    '</div>';
+  }
+
+  Object.keys(grupos).forEach(function(gid) {
+  html += renderGrupo(grupos[gid].name, grupos[gid].itens, grupos[gid].facility || '');
+});
+if (itensSoltos.length > 0) html += renderGrupo('Outros', itensSoltos, '');
+
+  html += '<p style="font-size:12px;color:#9ca3af;margin:4px 0 0;">' + totalItens + ' item(s) carregado(s) do Flex</p>';
+  container.innerHTML = html;
+}
+
+window.vmToggleGrupo = function(id) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.style.maxHeight = (el.style.maxHeight && el.style.maxHeight !== '0px') ? '0px' : el.scrollHeight + 'px';
+};
+
+window.vmToggleSub = function(subId, gId) {
+  var arr = document.getElementById('vmarr_' + subId);
+  var aberto = arr && arr.style.transform === 'rotate(90deg)';
+
+  if (aberto) {
+    document.querySelectorAll('tr.child-of.' + subId).forEach(function(tr) {
+      tr.style.display = 'none';
+    });
+    document.querySelectorAll('tr.child-of.' + subId + ' [id^="vmarr_"]').forEach(function(a) {
+      a.style.transform = '';
+    });
+    if (arr) arr.style.transform = '';
+  } else {
+    document.querySelectorAll('tr.child-of.' + subId).forEach(function(tr) {
+      var classes = Array.from(tr.classList).filter(function(c) { return c.startsWith('vmsubx_'); });
+      var paiImediato = classes[0];
+      if (paiImediato === subId) tr.style.display = 'table-row';
+    });
+    if (arr) arr.style.transform = 'rotate(90deg)';
+  }
+
+  if (gId) {
+    var grupoInner = document.getElementById(gId);
+    if (grupoInner) grupoInner.style.maxHeight = grupoInner.scrollHeight + 'px';
+  }
+};
+
+</script>

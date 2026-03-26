@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RISE – Gestão de Frota</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--off:#f5f4f2;--off2:#edecea;
+  --black:#0a0a0a;--ink:#1a1a1a;--muted:#6b6b6b;--muted2:#9e9e9e;
+  --border:#e2e0dd;--border2:#ccc9c5;
+  --red:#d92b22;--red-light:#fdf1f0;
+  --gold:#e0a500;--gold-light:#fffdf0;
+  --green:#1a7a3f;--green-light:#edfaf2;
+  --teal:#0e7c7b;--teal-light:#edfafa;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --nav:64px;--drawer:300px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--ink);font-family:var(--fb);overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--off2)}::-webkit-scrollbar-thumb{background:#888;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#555}
+nav{position:fixed;top:0;left:0;right:0;z-index:600;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.logo-box{background:var(--black);color:var(--white);font-family:var(--fh);font-weight:800;font-size:14px;padding:5px 11px;letter-spacing:.01em}
+.logo-box .s{color:var(--red)}
+.logo-text{font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);font-family:var(--fh);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--red)}
+.uname{font-size:12px;color:rgba(255,255,255,.4);font-weight:400}
+.role-badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.rb-admin{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-gestor{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-utilizador{background:rgba(217,43,34,.2);color:var(--red)}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none;border-radius:6px;transition:background .2s;width:40px;height:40px}
+.hamburger:hover{background:rgba(255,255,255,.08)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--white);border-radius:1px;transition:transform .3s ease,opacity .3s ease}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:700;pointer-events:none;transition:background .3s ease}
+.drawer-overlay.open{background:rgba(0,0,0,.25);pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:var(--drawer);background:var(--white);border-right:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:var(--nav);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:var(--black)}
+.drawer-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:6px;border-radius:6px;font-size:16px;line-height:1;transition:.2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+.drawer-close:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.drawer-body{flex:1;padding:8px 0;display:flex;flex-direction:column}
+.drawer-section-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:20px 20px 6px}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);font-size:13px;font-weight:400;text-decoration:none;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.drawer-item:hover{background:var(--off);color:var(--ink);border-left-color:var(--border2)}
+.drawer-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500}
+.drawer-item .di-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.7}
+.drawer-item.active .di-icon{opacity:1}
+.drawer-divider{height:1px;background:var(--border);margin:8px 20px}
+.drawer-footer{padding:20px;border-top:1px solid var(--border);flex-shrink:0}
+.drawer-footer-text{font-size:10px;color:var(--muted2);letter-spacing:.04em}
+.page-header{margin-top:var(--nav);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 52px;background:var(--off);border-bottom:1px solid var(--border);border-top:3px solid var(--red)}
+.ph-title{font-family:var(--fh);font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--black)}
+.ph-title .dot{color:var(--red)}
+.ph-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:300}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;text-decoration:none;transition:.2s;letter-spacing:.02em;white-space:nowrap}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#c0241c}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+.btn-save{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;background:var(--red);color:#fff;transition:.2s}
+.btn-save:hover{background:#c0241c}.btn-save:disabled{opacity:.5;cursor:not-allowed}
+.btn-cancel-edit{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;background:transparent;color:var(--muted);border:1px solid var(--border);transition:.2s}
+.btn-cancel-edit:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+.filters{padding:14px 52px;display:flex;gap:10px;background:var(--white);flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)}
+.btn-filter{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--ink);font-family:var(--fb);font-size:12px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-filter:hover{border-color:var(--border2);background:var(--off)}.btn-filter.active{border-color:var(--border2);background:var(--off);font-weight:600}
+.btn-clear-filters{display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:7px;border:1px solid transparent;background:transparent;color:var(--muted2);font-family:var(--fb);font-size:11px;font-weight:500;cursor:pointer;transition:.2s;min-height:36px;white-space:nowrap}
+.btn-clear-filters:hover{color:var(--red);border-color:rgba(217,43,34,.2);background:var(--red-light)}
+.search-wrap{margin-left:auto;position:relative}
+.search-wrap input{background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:12px;padding:7px 14px 7px 34px;border-radius:7px;width:220px;outline:none;transition:.2s}
+.search-wrap input:focus{border-color:var(--border2);background:var(--white)}
+.search-wrap input::placeholder{color:var(--muted2)}
+.search-wrap::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:11px;opacity:.5}
+.filter-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .22s}
+.filter-modal-overlay.open{opacity:1;pointer-events:all}
+.filter-modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-width:420px;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(10px) scale(.98);transition:transform .22s;overflow:hidden}
+.filter-modal-overlay.open .filter-modal{transform:translateY(0) scale(1)}
+.filter-modal-header{display:flex;align-items:center;justify-content:space-between;padding:20px 24px 16px;border-bottom:1px solid var(--border);flex-shrink:0}
+.filter-modal-title{font-family:var(--fh);font-size:16px;font-weight:800;color:var(--black);letter-spacing:-.02em}
+.filter-modal-close{width:30px;height:30px;border-radius:7px;background:var(--off);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.filter-modal-close:hover{background:var(--off2);color:var(--ink)}
+.filter-modal-body{padding:8px 0;overflow-y:auto;flex:1}
+.filter-modal-footer{display:flex;gap:8px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--border);background:var(--off);border-radius:0 0 14px 14px;flex-shrink:0}
+.fg{border-bottom:1px solid var(--border)}.fg:last-child{border-bottom:none}
+.fg-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;cursor:pointer;user-select:none;transition:background .15s;gap:12px}
+.fg-header:hover{background:var(--off)}
+.fg-header-left{display:flex;align-items:center;gap:10px}
+.fg-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);font-family:var(--fb)}
+.fg-active-count{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--red);color:#fff;font-family:var(--fb);display:none}
+.fg-active-count.visible{display:block}
+.fg-arrow{font-size:11px;color:var(--muted2);transition:transform .25s ease;flex-shrink:0}
+.fg.open .fg-arrow{transform:rotate(180deg)}
+.fg-body{display:none;padding:4px 24px 16px}
+.fg.open .fg-body{display:block}
+.filter-options{display:flex;flex-direction:column;gap:6px}
+.filter-option{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid var(--border);cursor:pointer;transition:.15s;user-select:none}
+.filter-option:hover{background:var(--off);border-color:var(--border2)}
+.filter-option.selected{background:var(--off2);border-color:var(--border2)}
+.fo-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.fo-label{flex:1;font-family:var(--fb);font-size:13px;font-weight:500;color:var(--ink)}
+.fo-count{font-size:10px;font-weight:700;color:var(--muted2);background:var(--off2);padding:2px 8px;border-radius:20px;font-family:var(--fb);min-width:24px;text-align:center}
+.fo-checkbox{width:18px;height:18px;border-radius:5px;flex-shrink:0;border:1.5px solid var(--border2);background:var(--white);display:flex;align-items:center;justify-content:center;transition:.15s;font-size:10px;color:#fff}
+.filter-option.selected .fo-checkbox{background:var(--ink);border-color:var(--ink)}
+.fo-checkmark{display:none}
+.filter-option.selected .fo-checkmark{display:block;font-weight:800}
+.content-wrap{padding:24px 52px 32px;flex:1}
+.table-container{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.frota-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.frota-table thead{background:var(--off)}
+.frota-table th{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:12px 16px;border-bottom:2px solid var(--border);font-family:var(--fb);white-space:nowrap}
+.frota-table tbody tr{transition:background .12s;cursor:pointer}
+.frota-table tbody tr:nth-child(even) td{background:var(--off)}
+.frota-table tbody tr:hover td{background:#ece9e4 !important}
+.frota-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;color:var(--ink);font-family:var(--fb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frota-table tbody tr:last-child td{border-bottom:none}
+.trow-id{font-family:var(--fh);font-size:11px;font-weight:800;color:var(--black);letter-spacing:.02em}
+.badge{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:20px;white-space:nowrap;font-family:var(--fb)}
+.b-concluido{background:var(--green-light);color:var(--green);border:1px solid #a8e5c0}
+.b-pendente{background:var(--gold-light);color:var(--gold);border:1px solid #f0d98a}
+.b-progresso{background:var(--teal-light);color:var(--teal);border:1px solid #a0dede}
+/* ── MODAL DETALHE ── */
+.detail-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:960;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.detail-overlay.open{opacity:1;pointer-events:all}
+.detail-modal{background:var(--white);border:1px solid var(--border);border-radius:16px;width:100%;max-width:560px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.18);transform:translateY(16px) scale(.98);transition:transform .25s;overflow:hidden}
+.detail-overlay.open .detail-modal{transform:translateY(0) scale(1)}
+.detail-header{padding:24px 28px 20px;border-bottom:1px solid var(--border);flex-shrink:0}
+.detail-header-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.detail-id{font-family:var(--fh);font-size:12px;font-weight:800;color:var(--muted2);letter-spacing:.08em}
+.detail-badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.detail-close-btn{width:32px;height:32px;border-radius:8px;background:var(--off);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.detail-close-btn:hover{background:var(--off2);color:var(--ink)}
+.detail-veiculo{font-family:var(--fh);font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.02em;line-height:1.2}
+.detail-body{padding:0 28px 24px;overflow-y:auto;flex:1}
+.detail-section{padding-top:20px;display:flex;flex-direction:column;gap:14px}
+.detail-section-title{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--muted2);margin-bottom:12px;font-family:var(--fb);padding-bottom:8px;border-bottom:1px solid var(--border)}
+.detail-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.detail-fields.single{grid-template-columns:1fr}
+.detail-field-label{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:5px;font-family:var(--fb)}
+.detail-field-value{font-size:13px;color:var(--ink);font-family:var(--fb);line-height:1.5;word-break:break-word}
+.detail-field-value.empty{color:var(--muted2);font-style:italic}
+.detail-footer{padding:16px 28px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:center;justify-content:flex-end;background:var(--white);flex-shrink:0}
+/* ── CAMPOS EDITÁVEIS ── */
+.fv{display:block}.fe{display:none}
+.edit-input,.edit-textarea,.edit-select{width:100%;background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:13px;padding:8px 12px;border-radius:8px;outline:none;transition:.2s}
+.edit-input:focus,.edit-textarea:focus,.edit-select:focus{border-color:var(--border2);background:var(--white)}
+.edit-textarea{resize:vertical;min-height:72px;line-height:1.5}
+.edit-select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b6b'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:8px;padding-right:30px;cursor:pointer}
+.estado-select{font-size:13px;font-weight:500;font-family:var(--fb);padding:8px 32px 8px 12px;border-radius:8px;border:1px solid var(--border);cursor:pointer;outline:none;width:100%;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b6b6b'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;background-size:8px}
+.estado-select.s-pendente{background-color:var(--gold-light);color:var(--gold);border-color:#f0d98a}
+.estado-select.s-progresso{background-color:var(--teal-light);color:var(--teal);border-color:#a0dede}
+.estado-select.s-concluido{background-color:var(--green-light);color:var(--green);border-color:#a8e5c0}
+.edit-feedback{font-size:11px;font-weight:600;font-family:var(--fb)}
+.edit-feedback.ok{color:var(--green)}.edit-feedback.err{color:var(--red)}
+/* ── MODAL CRIAR ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{background:var(--white);border:1px solid var(--border);border-radius:14px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;padding:32px;box-shadow:0 20px 60px rgba(0,0,0,.15);transform:translateY(12px);transition:transform .25s}
+.modal-overlay.open .modal{transform:translateY(0)}
+.modal-title{font-family:var(--fh);font-size:20px;font-weight:800;margin-bottom:24px;color:var(--black);letter-spacing:-.02em}
+.form-group{margin-bottom:14px}
+.form-label{display:block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);margin-bottom:6px;font-family:var(--fb)}
+.form-label .req{color:var(--red)}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--off);border:1px solid var(--border);color:var(--ink);font-family:var(--fb);font-size:13px;padding:9px 13px;border-radius:8px;outline:none;transition:.2s}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--border2);background:var(--white)}
+.form-textarea{resize:vertical;min-height:72px;line-height:1.5}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:24px}
+.btn-cancel{padding:9px 18px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fb);transition:.2s}
+.btn-cancel:hover{color:var(--ink);border-color:var(--border2);background:var(--white)}
+.loading-overlay{position:fixed;inset:0;background:rgba(220,218,215,.75);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.open{opacity:1;pointer-events:all}
+.loading-logo-wrap{position:relative;width:180px;height:68px}
+.loading-logo-base{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;filter:brightness(0) opacity(.12)}
+.loading-logo-fill{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;clip-path:inset(0 100% 0 0);animation:fillRight 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fillRight{0%{clip-path:inset(0 100% 0 0)}60%{clip-path:inset(0 0% 0 0)}85%{clip-path:inset(0 0% 0 0);opacity:1}100%{clip-path:inset(0 0% 0 0);opacity:0}}
+footer{border-top:1px solid var(--border);padding:10px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted2);background:var(--white);font-family:var(--fb)}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:13px;color:var(--black)}.foot-logo .s{color:var(--red)}
+.mobile-list{display:none;flex-direction:column;gap:10px;padding:20px 24px}
+.mt-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:16px;transition:.2s;cursor:pointer}
+.mt-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06);border-color:var(--border2)}
+.mt-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.mt-id{font-family:var(--fh);font-size:11px;font-weight:700;color:var(--muted2)}
+.mt-title{font-weight:600;font-size:13px;margin-bottom:4px;color:var(--black)}
+.mt-meta{font-size:11px;color:var(--muted);line-height:1.6;font-weight:300}
+@media(max-width:900px){
+  .uname,.role-badge{display:none}
+  .page-header,.content-wrap{padding-left:24px;padding-right:24px}
+  .page-header{flex-direction:column;align-items:flex-start;padding-bottom:0}
+  .filters{padding:14px 24px;flex-wrap:nowrap;align-items:center;gap:8px}
+  .search-wrap{margin-left:0;flex:1;min-width:0}.search-wrap input{width:100%}
+  .content-wrap{display:none;height:0;padding-top:0;padding-bottom:0;flex:none}
+  .mobile-list{display:flex;flex-direction:column;gap:10px;padding:20px 24px}
+ footer{margin-top:auto;padding:12px 24px}
+.foot-logo{width:auto}
+  .detail-fields{grid-template-columns:1fr}
+  .detail-header,.detail-body,.detail-footer{padding-left:20px;padding-right:20px}
+  .form-row{grid-template-columns:1fr}
+}
+#ef_tipologia_header option{font-family:var(--fb) !important;}
+
+.frota-table th{cursor:pointer;user-select:none;transition:color .15s,background .15s}
+.frota-table th:hover{color:var(--ink);background:var(--off2)}
+.frota-table th .sort-icon{display:inline-block;margin-left:5px;opacity:.25;font-style:normal;font-size:9px}
+.frota-table th.sort-asc .sort-icon,.frota-table th.sort-desc .sort-icon{opacity:1;color:var(--red)}
+.frota-table th.sort-asc .sort-icon::after{content:'↑'}
+.frota-table th.sort-desc .sort-icon::after{content:'↓'}
+.frota-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'↕'}
+
+</style>
+</head>
+<body>
+
+<? var WU = webappUrl; ?>
+<?
+  var userRole   = dados.sessao ? dados.sessao.role : 'utilizador';
+  var userName   = dados.sessao ? dados.sessao.nome : 'Utilizador';
+  var _parts     = userName.trim().split(' ');
+  var userInit   = _parts[0].charAt(0).toUpperCase() + (_parts.length>1 ? _parts[_parts.length-1].charAt(0).toUpperCase() : '');
+  var podeCriar  = (userRole==='admin'||userRole==='gestor');
+  var podeEditar = (userRole==='admin'||userRole==='gestor');
+  var podeVerSheet = (userRole==='admin');
+  var podeEliminar = (userRole==='admin');
+?>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+<div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span class="di-label">Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span class="di-label">Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span class="di-label">Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span class="di-label">Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span class="di-label">Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span class="di-label">RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span class="di-label">Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span class="di-label">Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span class="di-label">Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)"><?= userName ?></div>
+    <div class="drawer-footer-text" style="margin-top:3px"><?= userRole ?> · RISE</div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-left">
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    <div class="logo" onclick="navTo('<?= WU ?>')">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span class="logo-text">Portal Interno</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="uname"><?= userName ?></span>
+    <span class="role-badge rb-<?= userRole ?>"><?= userRole ?></span>
+    <div class="avatar"><?= userInit ?></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div>
+    <div class="ph-title">Gestão de Frota<span class="dot">.</span></div>
+    <div class="ph-sub">Manutenções, revisões e pedidos de veículos</div>
+  </div>
+  <div class="ph-actions">
+    <? if (podeCriar) { ?>
+    <button class="btn btn-red" onclick="abrirModalCriar()">🔧 Nova Manutenção</button>
+    <? } ?>
+    <? if (podeVerSheet) { ?>
+    <a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1G3GCsdMkdOFIPzFCxYgZqeCAFSW5e4jkrEpZTPzXxXE/edit?gid=1056748037#gid=1056748037" target="_blank">📊 Ver Sheet</a>
+
+    <? } ?>
+  </div>
+</div>
+
+<div class="filters">
+  <button class="btn-filter" id="btnFiltrar" onclick="abrirFiltrosModal()"><span>⚙️</span><span id="btnFiltrarLabel">Filtrar</span></button>
+  <button class="btn-clear-filters" id="btnRemoverFiltros" onclick="removerFiltros()" style="display:none"><span>✕</span> Remover filtros</button>
+  <div class="search-wrap"><input type="text" id="searchInput" placeholder="Pesquisar…" oninput="pesquisar(this.value)"></div>
+</div>
+
+<div class="filter-modal-overlay" id="filterModalOverlay">
+  <div class="filter-modal">
+    <div class="filter-modal-header">
+      <div class="filter-modal-title">⚙️ Filtrar registos</div>
+      <button class="filter-modal-close" onclick="fecharFiltrosModal()">✕</button>
+    </div>
+    <div class="filter-modal-body">
+      <div class="fg open" id="fg-estado">
+        <div class="fg-header" onclick="toggleFg('fg-estado')"><div class="fg-header-left"><span class="fg-label">Estado</span><span class="fg-active-count" id="fgcount-estado">0</span></div><span class="fg-arrow">▼</span></div>
+        <div class="fg-body"><div class="filter-options" id="filter-estado-options"></div></div>
+      </div>
+      <div class="fg open" id="fg-tipologia">
+        <div class="fg-header" onclick="toggleFg('fg-tipologia')"><div class="fg-header-left"><span class="fg-label">Tipologia</span><span class="fg-active-count" id="fgcount-tipologia">0</span></div><span class="fg-arrow">▼</span></div>
+        <div class="fg-body"><div class="filter-options" id="filter-tipologia-options"></div></div>
+      </div>
+    </div>
+    <div class="filter-modal-footer">
+      <button class="btn btn-ghost" onclick="fecharFiltrosModal()">Cancelar</button>
+      <button class="btn btn-red" onclick="aplicarFiltrosModal()">Aplicar filtros</button>
+    </div>
+  </div>
+</div>
+
+<div class="content-wrap">
+  <div class="table-container">
+    <table class="frota-table">
+      <thead><tr>
+<th style="width:200px" onclick="sortTable(0,this)"><span>Tipologia</span><i class="sort-icon"></i></th>
+<th style="width:200px" onclick="sortTable(1,this)"><span>Veículo</span><i class="sort-icon"></i></th>
+<th onclick="sortTable(2,this)"><span>Descrição</span><i class="sort-icon"></i></th>
+<th style="width:200px" onclick="sortTable(3,this)"><span>Estado</span><i class="sort-icon"></i></th>
+<th style="width:200px" onclick="sortTable(4,this)"><span>Data</span><i class="sort-icon"></i></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="mobile-list" id="mobileList"></div>
+
+<!-- MODAL DETALHE -->
+<div class="detail-overlay" id="detailOverlay">
+  <div class="detail-modal">
+    <div class="detail-header">
+      <div class="detail-header-top" style="margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="dTipologiaBadge" style="font-family:var(--fb);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;background:var(--teal-light);color:var(--teal);border:1px solid #a0dede"></span>
+          <select id="ef_tipologia_header" style="display:none;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;padding:8px 30px 8px 13px;border-radius:8px;height:auto;width:auto;background:var(--off);border:1px solid var(--border);color:var(--ink);outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27%3E%3Cpath d=%27M0 0l5 6 5-6z%27 fill=%27%236b6b6b%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;background-size:8px;cursor:pointer"></select>
+        </div>
+      </div>
+      <div class="fv" id="fv_veiculo_titulo" style="font-family:var(--fh);font-size:20px;font-weight:800;color:var(--black);letter-spacing:-.02em;line-height:1.2">—</div>
+      <div class="fe" id="fe_veiculo_titulo" style="display:none;margin-top:4px">
+        <select class="edit-select" id="ef_veiculo" style="font-size:14px;font-weight:600"></select>
+      </div>
+    </div>
+    <div class="detail-body" id="dBody"></div>
+    <div class="detail-footer">
+     <div id="footerView" style="display:flex;gap:8px;align-items:center;width:100%;justify-content:flex-end">
+<? if (podeEliminar) { ?>
+  <button class="btn btn-ghost" id="dBtnEliminar" onclick="eliminarRegisto()" style="margin-right:auto">🗑️ Eliminar</button>
+ <? } ?>
+    <? if (podeEditar) { ?>
+  <button class="btn btn-ghost" id="dBtnEditar" onclick="ativarEdicao()">✏️ Editar</button>
+  <? } ?>
+  <button class="btn btn-red" onclick="fecharDetalhe()">Fechar</button>
+</div>
+      <div id="footerEdit" style="display:none;gap:8px;align-items:center;width:100%;justify-content:flex-end;flex-wrap:wrap">
+        <span class="edit-feedback" id="dEditFeedback" style="display:none"></span>
+        <button class="btn-cancel-edit" onclick="cancelarEdicao()">Cancelar</button>
+        <button class="btn-save" id="dBtnGravar" onclick="gravarEdicao()">💾 Gravar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CRIAR -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)fecharModalCriar()">
+  <div class="modal">
+    <div class="modal-title">🔧 Nova Manutenção</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Tipologia <span class="req">*</span></label>
+        <select class="form-select" id="fTipologia">
+          <option value="">— Selecionar —</option>
+          <option>Inspeção</option>
+          <option>Manutenção</option>
+          <option>Reparação</option>
+          <option>Pintura</option>
+          <option>Limpeza</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Veículo <span class="req">*</span></label>
+        <select class="form-select" id="fVeiculo">
+          <option value="">— Selecionar —</option>
+          <option>Iveco 95-TJ-54</option>
+          <option>Boxer 47-LQ-29</option>
+          <option>Jumper 44-XR-09</option>
+          <option>Master 58-IT-37</option>
+          <option>Partner 49-TA-85</option>
+          <option>Peugeot 208 BA-49-FD</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Descrição <span class="req">*</span></label>
+      <textarea class="form-textarea" id="fDesc" placeholder="Descreve o problema ou trabalho a realizar…"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="fecharModalCriar()">Cancelar</button>
+      <button class="btn btn-red" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-base"></div>
+    <div class="loading-logo-fill"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+  <div>© 2026 RISE · a Europalco company</div>
+  <div>Departamento de Planeamento · <?= dados.dataHoje ?></div>
+</footer>
+
+<script>
+var FROTA_DATA = <?!= JSON.stringify(dados.frota) ?>;
+var registoAtivo = null;
+var podeEditarJS = ('<?= podeEditar ?>' === 'true');
+
+/* filter state */
+var activeEstado=[],pendingEstado=[];
+var activeTipologia=[],pendingTipologia=[];
+var activeVeiculo=[],pendingVeiculo=[];
+var activeSearch='';
+
+var VEICULOS=['Iveco 95-TJ-54','Boxer 47-LQ-29','Jumper 44-XR-09','Master 58-IT-37','Partner 49-TA-85','Peugeot 208 BA-49-FD'];
+var TIPOLOGIAS=['Inspeção','Manutenção','Reparação','Pintura','Limpeza'];
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');}
+
+function estadoCls(e){
+  if(!e) return 'b-pendente';
+  var el=e.toLowerCase();
+  if(el.indexOf('conclu')!==-1) return 'b-concluido';
+  if(el.indexOf('progress')!==-1||el.indexOf('execu')!==-1||el.indexOf('andamento')!==-1) return 'b-progresso';
+  return 'b-pendente';
+}
+function estadoSelectCls(v){
+  if(!v) return 's-pendente';
+  var vl=v.toLowerCase();
+  if(vl.indexOf('conclu')!==-1) return 's-concluido';
+  if(vl.indexOf('progress')!==-1||vl.indexOf('execu')!==-1) return 's-progresso';
+  return 's-pendente';
+}
+function aplicarCorSelect(sel){sel.className='estado-select '+estadoSelectCls(sel.value);}
+
+/* ── RENDER ── */
+function getFiltered(){
+  return FROTA_DATA.filter(function(r){
+    var q=[r.id,r.tipologia,r.veiculo,r.desc,r.estado].join(' ').toLowerCase();
+    return (activeEstado.length===0   ||activeEstado.some(function(v){return(r.estado||'').toLowerCase()===v.toLowerCase();}))
+        &&(activeTipologia.length===0 ||activeTipologia.some(function(v){return(r.tipologia||'').toLowerCase()===v.toLowerCase();}))
+        &&(activeVeiculo.length===0   ||activeVeiculo.some(function(v){return(r.veiculo||'').toLowerCase()===v.toLowerCase();}))
+        &&(!activeSearch||q.indexOf(activeSearch)!==-1);
+  });
+}
+
+function render(){
+  var filtered=getFiltered();
+  document.getElementById('tbody').innerHTML=filtered.map(function(r){
+    return '<tr onclick="abrirDetalhe(\''+esc(r.id)+'\')"'
+      +' data-sort0="'+esc(r.tipologia||'')+'"'
+      +' data-sort1="'+esc(r.veiculo||'')+'"'
+      +' data-sort2="'+esc(r.desc||'')+'"'
+      +' data-sort3="'+esc(r.estado||'')+'"'
+      +' data-sort4="'+esc(r.data||'')+'">'
+      +'<td style="font-size:13px">'+esc(r.tipologia||'—')+'</td>'
+      +'<td style="font-size:13px">'+esc(r.veiculo||'—')+'</td>'
+      +'<td style="color:var(--muted2)">'+esc(r.desc||'—')+'</td>'
+      +'<td><span class="badge '+estadoCls(r.estado)+'">'+esc(r.estado||'—')+'</span></td>'
+      +'<td style="font-size:12px;color:var(--muted2)">'+esc(r.data||'—')+'</td>'
+      +'</tr>';
+  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:48px;color:var(--muted2)">Sem registos para os filtros aplicados.</td></tr>';
+  document.getElementById('mobileList').innerHTML=filtered.map(function(r){
+    return '<div class="mt-card" onclick="abrirDetalhe(\''+esc(r.id)+'\')">'
+      +'<div class="mt-top">'
+      +'<span class="badge '+estadoCls(r.estado)+'">'+esc(r.estado||'—')+'</span></div>'
+      +'<div class="mt-title">'+esc(r.veiculo||'—')+'</div>'
+      +'<div class="mt-meta">'+esc(r.tipologia||'—')+' · '+esc(r.data||'—')+'</div>'
+      +'<div class="mt-meta" style="color:var(--muted2)">'+esc(r.desc||'')+'</div>'
+      +'</div>';
+  }).join('')||'<div style="text-align:center;padding:48px;color:var(--muted2)">Sem registos para os filtros aplicados.</div>';
+}
+
+/* ── DETALHE ── */
+function abrirDetalhe(id){
+  var r=null;
+  for(var i=0;i<FROTA_DATA.length;i++){if(FROTA_DATA[i].id===id){r=FROTA_DATA[i];break;}}
+  if(!r) return;
+  registoAtivo=r;
+
+  /* Header: tipologia badge + veículo título */
+  var tipBadge=document.getElementById('dTipologiaBadge');
+if(tipBadge){
+  tipBadge.textContent=r.tipologia||'';
+  tipBadge.setAttribute('style',
+    'font-family:var(--fb);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;'
+    +tipologiaBadgeStyle(r.tipologia)
+  );
+}
+  document.getElementById('fv_veiculo_titulo').textContent=r.veiculo||'—';
+
+  var estOpts=['Pendente','Em Progresso','Concluído'].map(function(o){return'<option'+(r.estado===o?' selected':'')+'>'+o+'</option>';}).join('');
+  var tipOpts=TIPOLOGIAS.map(function(o){return'<option'+(r.tipologia===o?' selected':'')+'>'+o+'</option>';}).join('');
+  var veicOpts=VEICULOS.map(function(o){return'<option'+(r.veiculo===o?' selected':'')+'>'+o+'</option>';}).join('');
+
+  /* Preenche selects do header */
+  var tipSelect=document.getElementById('ef_tipologia_header');
+  if(tipSelect) tipSelect.innerHTML=tipOpts;
+  var veicSelect=document.getElementById('ef_veiculo');
+  if(veicSelect) veicSelect.innerHTML='<option value="">—</option>'+veicOpts;
+
+  document.getElementById('dBody').innerHTML=
+    '<div class="detail-section">'
+
+    /* Descrição */
+    +'<div class="detail-fields single">'
+    +'<div><div class="detail-field-label">Descrição</div>'
+    +'<div class="fv" id="fv_desc"><div class="detail-field-value'+(r.desc?'':' empty')+'">'+esc(r.desc||'—')+'</div></div>'
+    +'<div class="fe" id="fe_desc" style="display:none"><textarea class="edit-textarea" id="ef_desc">'+esc(r.desc||'')+'</textarea></div>'
+    +'</div>'
+    +'</div>'
+
+    /* Estado */
+    +'<div class="detail-fields single">'
+    +'<div><div class="detail-field-label">Estado</div>'
+    +'<div class="fv" id="fv_estado"><div class="detail-field-value"><span class="badge '+estadoCls(r.estado)+'">'+esc(r.estado||'—')+'</span></div></div>'
+    +'<div class="fe" id="fe_estado" style="display:none"><select id="ef_estado" class="estado-select '+estadoSelectCls(r.estado)+'" onchange="aplicarCorSelect(this)">'+estOpts+'</select></div>'
+    +'</div>'
+    +'</div>'
+
+    /* Data — só em view mode */
+   +'<div class="detail-fields single" id="bloco_data">'
++'<div><div class="detail-field-label">Data</div>'
++'<div id="fv_data"><div class="detail-field-value'+(r.data?'':' empty')+'">'+esc(r.data||'—')+'</div></div>'
++'</div>'
++'</div>'
+
+    +'</div>';
+
+  cancelarEdicao();
+  document.getElementById('detailOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function fecharDetalhe(){cancelarEdicao();document.getElementById('detailOverlay').classList.remove('open');document.body.style.overflow='';}
+
+/* ── EDIÇÃO ── */
+function ativarEdicao(){
+  if(!registoAtivo||!podeEditarJS) return;
+  /* campos no body */
+  document.querySelectorAll('#dBody .fv').forEach(function(el){el.style.display='none';});
+  document.querySelectorAll('#dBody .fe').forEach(function(el){el.style.display='block';});
+  /* bloco data: esconde em edit mode */
+  /* header: tipologia badge → select */
+  document.getElementById('dTipologiaBadge').style.display='none';
+  document.getElementById('ef_tipologia_header').style.display='';
+  /* header: veículo texto → select */
+  document.getElementById('fv_veiculo_titulo').style.display='none';
+  document.getElementById('fe_veiculo_titulo').style.display='block';
+  /* footer */
+  document.getElementById('footerView').style.display='none';
+  document.getElementById('footerEdit').style.display='flex';
+  var fb=document.getElementById('dEditFeedback');
+  if(fb){fb.style.display='none';fb.textContent='';}
+}
+function cancelarEdicao(){
+  document.querySelectorAll('#dBody .fv').forEach(function(el){el.style.display='';});
+  document.querySelectorAll('#dBody .fe').forEach(function(el){el.style.display='none';});
+  /* bloco data: mostra em view mode */
+  /* header: select → tipologia badge */
+  var tipBadge=document.getElementById('dTipologiaBadge');
+  if(tipBadge) tipBadge.style.display='';
+  var tipSelect=document.getElementById('ef_tipologia_header');
+  if(tipSelect) tipSelect.style.display='none';
+  /* header: select → veículo texto */
+  var fvV=document.getElementById('fv_veiculo_titulo');
+  if(fvV) fvV.style.display='';
+  var feV=document.getElementById('fe_veiculo_titulo');
+  if(feV) feV.style.display='none';
+  document.getElementById('footerView').style.display='flex';
+  document.getElementById('footerEdit').style.display='none';
+}
+
+function gravarEdicao(){
+  if(!registoAtivo) return;
+  var updates={
+    tipologia: document.getElementById('ef_tipologia_header').value||registoAtivo.tipologia,
+    veiculo:   document.getElementById('ef_veiculo')  ?document.getElementById('ef_veiculo').value  :registoAtivo.veiculo,
+    estado:    document.getElementById('ef_estado')   ?document.getElementById('ef_estado').value   :registoAtivo.estado,
+    desc:      document.getElementById('ef_desc')     ?document.getElementById('ef_desc').value     :registoAtivo.desc,
+  };
+  var btn=document.getElementById('dBtnGravar'),fb=document.getElementById('dEditFeedback');
+  btn.disabled=true;btn.textContent='⏳ A gravar…';
+  if(fb)fb.style.display='none';
+  document.getElementById('loadingOverlay').classList.add('open');
+
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(res&&res.ok){
+        var novaData=res.data||registoAtivo.data;
+        updates.data=novaData;
+        /* Atualiza memória */
+        Object.keys(updates).forEach(function(k){registoAtivo[k]=updates[k];});
+        for(var i=0;i<FROTA_DATA.length;i++){if(FROTA_DATA[i].id===registoAtivo.id){Object.keys(updates).forEach(function(k){FROTA_DATA[i][k]=updates[k];});break;}}
+        /* Atualiza views no modal */
+        function setFv(key,html){var fv=document.getElementById('fv_'+key);if(fv){var dv=fv.querySelector('.detail-field-value');if(dv)dv.innerHTML=html;}}
+        setFv('data',esc(novaData||'—'));
+        setFv('desc',updates.desc?esc(updates.desc).replace(/\n/g,'<br>'):'<span class="empty">—</span>');
+        var bcls=estadoCls(updates.estado);
+        setFv('estado','<span class="badge '+bcls+'">'+esc(updates.estado||'—')+'</span>');
+        /* Tipologia badge no header */
+        document.getElementById('dTipologiaBadge').textContent=updates.tipologia||'';
+        /* Veículo título */
+        document.getElementById('fv_veiculo_titulo').textContent=updates.veiculo||'—';
+        render();
+        if(fb){fb.textContent='✓ Gravado';fb.className='edit-feedback ok';fb.style.display='';}
+        btn.disabled=false;btn.textContent='💾 Gravar';
+        setTimeout(cancelarEdicao,1200);
+      } else {
+        if(fb){fb.textContent='✕ Erro ao gravar';fb.className='edit-feedback err';fb.style.display='';}
+        btn.disabled=false;btn.textContent='💾 Gravar';
+      }
+    })
+    .withFailureHandler(function(){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(fb){fb.textContent='✕ Erro ao gravar';fb.className='edit-feedback err';fb.style.display='';}
+      btn.disabled=false;btn.textContent='💾 Gravar';
+    })
+    .updateFrotaManutencao(registoAtivo.id,updates);
+}
+
+/* ── ELIMINAR ── */
+function eliminarRegisto(){
+  if(!registoAtivo||!podeEditarJS) return;
+  if(!confirm('Tens a certeza que queres eliminar este registo?\n\n'+registoAtivo.id+' — '+registoAtivo.veiculo)) return;
+  document.getElementById('loadingOverlay').classList.add('open');
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(res&&res.ok){
+        FROTA_DATA=FROTA_DATA.filter(function(r){return r.id!==registoAtivo.id;});
+        render();buildFilterOptions();atualizarCountsModal();
+        fecharDetalhe();
+      } else {
+        alert('Erro ao eliminar. Tenta novamente.');
+      }
+    })
+    .withFailureHandler(function(){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      alert('Erro ao eliminar. Tenta novamente.');
+    })
+    .deleteFrotaManutencao(registoAtivo.id);
+}
+
+/* ── CRIAR ── */
+function abrirModalCriar(){document.getElementById('modalOverlay').classList.add('open');document.body.style.overflow='hidden';}
+function fecharModalCriar(){document.getElementById('modalOverlay').classList.remove('open');document.body.style.overflow='';document.getElementById('fTipologia').selectedIndex=0;document.getElementById('fVeiculo').selectedIndex=0;document.getElementById('fDesc').value='';}
+function guardar(){
+  var tipologia=document.getElementById('fTipologia').value.trim();
+  var veiculo=document.getElementById('fVeiculo').value.trim();
+  var desc=document.getElementById('fDesc').value.trim();
+  if(!tipologia||!veiculo||!desc){alert('Preenche todos os campos obrigatórios.');return;}
+  document.getElementById('loadingOverlay').classList.add('open');
+  google.script.run
+    .withSuccessHandler(function(res){
+      document.getElementById('loadingOverlay').classList.remove('open');
+      if(res&&res.ok&&res.registo){FROTA_DATA.unshift(res.registo);render();buildFilterOptions();atualizarCountsModal();}
+      fecharModalCriar();
+    })
+    .withFailureHandler(function(){document.getElementById('loadingOverlay').classList.remove('open');alert('Erro ao guardar. Tenta novamente.');})
+    .addFrotaManutencao({tipologia:tipologia,veiculo:veiculo,desc:desc});
+}
+
+/* ── FILTROS ── */
+function pesquisar(val){activeSearch=val.toLowerCase().trim();render();}
+function abrirFiltrosModal(){
+  pendingEstado=activeEstado.slice();pendingTipologia=activeTipologia.slice();pendingVeiculo=activeVeiculo.slice();
+  document.querySelectorAll('.filter-option').forEach(function(opt){
+    var g=opt.dataset.group,v=(opt.dataset.val||'').toLowerCase();
+    var arr=g==='estado'?pendingEstado:g==='tipologia'?pendingTipologia:pendingVeiculo;
+    opt.classList.toggle('selected',arr.some(function(x){return x.toLowerCase()===v;}));
+  });
+  atualizarCountsModal();
+  document.getElementById('filterModalOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function fecharFiltrosModal(){document.getElementById('filterModalOverlay').classList.remove('open');document.body.style.overflow='';}
+function toggleFilterOption(el){
+  var g=el.dataset.group,val=el.dataset.val;
+  var arr=g==='estado'?pendingEstado:g==='tipologia'?pendingTipologia:pendingVeiculo;
+  var idx=arr.map(function(x){return x.toLowerCase();}).indexOf(val.toLowerCase());
+  if(idx!==-1){arr.splice(idx,1);el.classList.remove('selected');}else{arr.push(val);el.classList.add('selected');}
+  atualizarCountsModal();
+}
+function aplicarFiltrosModal(){activeEstado=pendingEstado.slice();activeTipologia=pendingTipologia.slice();activeVeiculo=pendingVeiculo.slice();fecharFiltrosModal();render();atualizarBotaoFiltrar();}
+function removerFiltros(){activeEstado=[];pendingEstado=[];activeTipologia=[];pendingTipologia=[];activeVeiculo=[];pendingVeiculo=[];render();atualizarBotaoFiltrar();}
+function atualizarBotaoFiltrar(){
+  var total=activeEstado.length+activeTipologia.length+activeVeiculo.length;
+  var btn=document.getElementById('btnFiltrar'),lbl=document.getElementById('btnFiltrarLabel'),rem=document.getElementById('btnRemoverFiltros');
+  if(total>0){btn.classList.add('active');lbl.textContent='Filtros ('+total+')';rem.style.display='';}
+  else{btn.classList.remove('active');lbl.textContent='Filtrar';rem.style.display='none';}
+}
+function toggleFg(id){document.getElementById(id).classList.toggle('open');}
+function atualizarCountsModal(){
+  var cnt={estado:{},tipologia:{},veiculo:{}};
+  FROTA_DATA.forEach(function(r){
+    var e=(r.estado||'').trim(),t=(r.tipologia||'').trim(),v=(r.veiculo||'').trim();
+    if(e)cnt.estado[e]=(cnt.estado[e]||0)+1;
+    if(t)cnt.tipologia[t]=(cnt.tipologia[t]||0)+1;
+    if(v)cnt.veiculo[v]=(cnt.veiculo[v]||0)+1;
+  });
+  document.querySelectorAll('.filter-option').forEach(function(opt){
+    var g=opt.dataset.group,v=opt.dataset.val,fc=opt.querySelector('.fo-count');
+    if(fc)fc.textContent=(cnt[g]&&cnt[g][v])||0;
+  });
+  var gc={estado:pendingEstado.length,tipologia:pendingTipologia.length,veiculo:pendingVeiculo.length};
+  ['estado','tipologia','veiculo'].forEach(function(g){var el=document.getElementById('fgcount-'+g);if(el){el.textContent=gc[g];el.classList.toggle('visible',gc[g]>0);}});
+}
+function buildFilterOptions(){
+  var estadoDot=function(v){var c=estadoCls(v);return c==='b-concluido'?'var(--green)':c==='b-progresso'?'var(--teal)':'var(--gold)';};
+  var tipDot={Inspeção:'#8b5cf6',Manutenção:'var(--teal)',Reparação:'var(--red)',Pintura:'#f97316',Limpeza:'#06b6d4'};
+  var veicColors=['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899'];
+  function uniq(arr){var r=[];arr.forEach(function(v){if(v&&r.indexOf(v)===-1)r.push(v);});return r;}
+  var estados=uniq(FROTA_DATA.map(function(r){return(r.estado||'').trim();}));
+  var tipologias=uniq(FROTA_DATA.map(function(r){return(r.tipologia||'').trim();}));
+  var veiculos=uniq(FROTA_DATA.map(function(r){return(r.veiculo||'').trim();}));
+  function buildOpts(items,group,dotFn,cid){
+    var el=document.getElementById(cid);if(!el)return;
+    el.innerHTML=items.map(function(v,i){
+      return '<div class="filter-option" data-group="'+group+'" data-val="'+esc(v)+'" onclick="toggleFilterOption(this)">'
+        +'<div class="fo-dot" style="background:'+dotFn(v,i)+'"></div>'
+        +'<span class="fo-label">'+esc(v)+'</span>'
+        +'<span class="fo-count">0</span>'
+        +'<div class="fo-checkbox"><span class="fo-checkmark">✓</span></div>'
+        +'</div>';
+    }).join('');
+  }
+  buildOpts(estados,  'estado',   function(v){return estadoDot(v);},'filter-estado-options');
+  buildOpts(tipologias,'tipologia',function(v){return tipDot[v]||'var(--muted2)';},'filter-tipologia-options');
+  buildOpts(veiculos, 'veiculo',  function(v,i){return veicColors[i%veicColors.length];},'filter-veiculo-options');
+}
+
+var sortCol = -1, sortDir = 1;
+
+function sortTable(col, th) {
+  sortDir = (sortCol === col) ? sortDir * -1 : 1;
+  sortCol = col;
+  document.querySelectorAll('.frota-table th').forEach(function(h){ h.classList.remove('sort-asc','sort-desc'); });
+  th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc');
+  FROTA_DATA.sort(function(a, b) {
+    var keys = ['tipologia','veiculo','desc','estado','data'];
+    var av = (a[keys[col]]||'').toLowerCase();
+    var bv = (b[keys[col]]||'').toLowerCase();
+    return av < bv ? -sortDir : av > bv ? sortDir : 0;
+  });
+  render();
+}
+
+function tipologiaBadgeStyle(tip) {
+  var cores = {
+    'Inspeção':   '#8b5cf6',
+    'Manutenção': 'var(--teal)',
+    'Reparação':  'var(--red)',
+    'Pintura':    '#f97316',
+    'Limpeza':    '#06b6d4'
+  };
+  var fundos = {
+    'Inspeção':   'rgba(139,92,246,.08)',
+    'Manutenção': 'var(--teal-light)',
+    'Reparação':  'var(--red-light)',
+    'Pintura':    'rgba(249,115,22,.08)',
+    'Limpeza':    'rgba(6,182,212,.08)'
+  };
+  var cor    = cores[tip]  || 'var(--muted2)';
+  var fundo  = fundos[tip] || 'var(--off2)';
+  return 'background:'+fundo+';color:'+cor+';border:1px solid '+cor+';';
+}
+
+/* ── NAV ── */
+function navTo(url){document.getElementById('loadingOverlay').classList.add('open');setTimeout(function(){try{window.top.location.href=url;}catch(e){window.location.href=url;}},50);}
+var drawerOpen=false;
+function toggleDrawer(){drawerOpen?closeDrawer():openDrawer();}
+function openDrawer(){drawerOpen=true;document.getElementById('drawer').classList.add('open');document.getElementById('drawerOverlay').classList.add('open');document.getElementById('hamburger').classList.add('open');document.body.style.overflow='hidden';}
+function closeDrawer(){drawerOpen=false;document.getElementById('drawer').classList.remove('open');document.getElementById('drawerOverlay').classList.remove('open');document.getElementById('hamburger').classList.remove('open');document.body.style.overflow='';}
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){fecharModalCriar();fecharDetalhe();fecharFiltrosModal();closeDrawer();}});
+
+buildFilterOptions();atualizarBotaoFiltrar();atualizarCountsModal();render();
+</script>
+</body>
+</html>

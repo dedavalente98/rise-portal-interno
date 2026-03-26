@@ -1,0 +1,2140 @@
+<!DOCTYPE html>
+<html lang="pt">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RISE - Calendario</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
+
+    :root {
+      --white: #ffffff;
+      --off: #f5f4f2;
+      --off2: #edecea;
+      --black: #0a0a0a;
+      --ink: #1a1a1a;
+      --muted: #6b6b6b;
+      --muted2: #9e9e9e;
+      --border: #e2e0dd;
+      --border2: #ccc9c5;
+      --red: #d92b22;
+      --red-light: #fdf1f0;
+      --wknd-bg: #ede9e4;
+      --wknd-num: #a89e94;
+      --wknd-name: #c4b8ae;
+      --cal-crew: #0f9490;
+      --cal-reunioes: #d92b22;
+      --cal-ferias: #7c3aed;
+      --fh: 'Syne', sans-serif;
+      --fb: 'DM Sans', sans-serif;
+      --nav: 64px;
+      --drawer: 300px;
+    }
+
+    html {
+      scroll-behavior: smooth
+    }
+
+    body {
+      background: var(--white);
+      color: var(--ink);
+      font-family: var(--fb);
+      overflow-x: hidden;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--off2)
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ccc;
+      border-radius: 4px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #aaa
+    }
+
+    nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 600;
+      height: var(--nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: var(--black);
+      border-bottom: 1px solid rgba(255, 255, 255, .08)
+    }
+
+    .nav-left {
+      display: flex;
+      align-items: center;
+      gap: 16px
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      cursor: pointer
+    }
+
+    .logo-box {
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--fh);
+      font-weight: 800;
+      font-size: 14px;
+      padding: 5px 11px;
+      letter-spacing: .01em
+    }
+
+    .logo-box .s {
+      color: var(--red)
+    }
+
+    .logo-text {
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 600;
+      color: rgba(255, 255, 255, .35);
+      letter-spacing: .14em;
+      text-transform: uppercase
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--black);
+      color: var(--white);
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid var(--red)
+    }
+
+    .uname {
+      font-size: 12px;
+      color: rgba(255, 255, 255, .4);
+      font-weight: 400
+    }
+
+    .role-badge {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px;
+      font-family: var(--fb)
+    }
+
+        .rb-admin{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-gestor{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-utilizador{background:rgba(217,43,34,.2);color:var(--red)}
+
+    .hamburger {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 5px;
+      cursor: pointer;
+      padding: 8px;
+      background: none;
+      border: none;
+      border-radius: 6px;
+      transition: background .2s;
+      width: 40px;
+      height: 40px
+    }
+
+    .hamburger:hover {
+      background: rgba(255, 255, 255, .08)
+    }
+
+    .hamburger span {
+      display: block;
+      width: 20px;
+      height: 1.5px;
+      background: var(--white);
+      border-radius: 1px;
+      transition: transform .3s ease, opacity .3s ease
+    }
+
+    .hamburger.open span:nth-child(1) {
+      transform: translateY(6.5px) rotate(45deg)
+    }
+
+    .hamburger.open span:nth-child(2) {
+      opacity: 0
+    }
+
+    .hamburger.open span:nth-child(3) {
+      transform: translateY(-6.5px) rotate(-45deg)
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0);
+      z-index: 700;
+      pointer-events: none;
+      transition: background .3s
+    }
+
+    .drawer-overlay.open {
+      background: rgba(0, 0, 0, .25);
+      pointer-events: all
+    }
+
+    .drawer {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--drawer);
+      background: var(--white);
+      border-right: 1px solid var(--border);
+      z-index: 800;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform .32s cubic-bezier(.4, 0, .2, 1);
+      overflow-y: auto
+    }
+
+    .drawer.open {
+      transform: translateX(0)
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: var(--nav);
+      border-bottom: 1px solid rgba(255, 255, 255, .08);
+      flex-shrink: 0;
+      background: var(--black)
+    }
+
+    .drawer-close {
+      background: none;
+      border: none;
+      color: rgba(255, 255, 255, .4);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      transition: .2s
+    }
+
+    .drawer-close:hover {
+      background: rgba(255, 255, 255, .08);
+      color: var(--white)
+    }
+
+    .drawer-body {
+      flex: 1;
+      padding: 8px 0;
+      display: flex;
+      flex-direction: column
+    }
+
+    .drawer-section-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 20px 20px 6px
+    }
+
+    .drawer-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 20px;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background .15s, color .15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      border-left: 2px solid transparent
+    }
+
+    .drawer-item:hover {
+      background: var(--off);
+      color: var(--ink);
+      border-left-color: var(--border2)
+    }
+
+    .drawer-item.active {
+      background: var(--red-light);
+      color: var(--red);
+      border-left-color: var(--red);
+      font-weight: 500
+    }
+
+    .drawer-item .di-icon {
+      font-size: 15px;
+      width: 20px;
+      text-align: center;
+      flex-shrink: 0;
+      opacity: .7
+    }
+
+    .drawer-item.active .di-icon {
+      opacity: 1
+    }
+
+    .drawer-item .di-badge {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 20px;
+      background: var(--off2);
+      color: var(--muted)
+    }
+
+    .drawer-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 8px 20px
+    }
+
+    .drawer-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .drawer-footer-text {
+      font-size: 10px;
+      color: var(--muted2);
+      letter-spacing: .04em
+    }
+
+    .page-header {
+      margin-top: var(--nav);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding: 20px 52px;
+      background: var(--off);
+      border-bottom: 1px solid var(--border);
+      border-top: 3px solid var(--red)
+    }
+
+    .ph-title {
+      font-family: var(--fh);
+      font-size: clamp(20px, 2.2vw, 28px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: var(--black)
+    }
+
+    .ph-title .dot {
+      color: var(--red)
+    }
+
+    .ph-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+      font-weight: 300
+    }
+
+    .cal-filter-bar {
+      padding: 12px 52px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: var(--white);
+      border-bottom: 1px solid var(--border)
+    }
+
+    .filter-bar-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-right: 4px;
+      white-space: nowrap
+    }
+
+    .cal-check {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1.5px solid var(--border);
+      background: var(--white);
+      cursor: pointer;
+      transition: .15s;
+      user-select: none;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted)
+    }
+
+    .cal-check:hover {
+      border-color: var(--border2);
+      background: var(--off)
+    }
+
+    .cal-check-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .cal-check-icon {
+      font-size: 10px;
+      font-weight: 700;
+      opacity: 0;
+      transition: opacity .15s
+    }
+
+    .cal-check.cc-crew {
+      --c: 15, 148, 144
+    }
+
+    .cal-check.cc-reunioes {
+      --c: 217, 43, 34
+    }
+
+    .cal-check.cc-ferias {
+      --c: 124, 58, 237
+    }
+
+    .cal-check.active {
+      border-color: rgba(var(--c), .3);
+      background: rgba(var(--c), .07);
+      color: rgba(var(--c), 1)
+    }
+
+    .cal-check.active .cal-check-icon {
+      opacity: 1
+    }
+
+    .cal-check.cc-crew .cal-check-dot {
+      background: var(--cal-crew)
+    }
+
+    .cal-check.cc-reunioes .cal-check-dot {
+      background: var(--cal-reunioes)
+    }
+
+    .cal-check.cc-ferias .cal-check-dot {
+      background: var(--cal-ferias)
+    }
+
+    .cal-wrap {
+      padding: 32px 52px;
+      flex: 1
+    }
+
+    .cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px
+    }
+
+    .cal-month {
+      font-family: var(--fh);
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      color: var(--black)
+    }
+
+    .cal-nav-btns {
+      display: flex;
+      gap: 6px
+    }
+
+    .cal-nav-btn {
+      height: 32px;
+      border-radius: 7px;
+      background: var(--white);
+      border: 1px solid var(--border);
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .2s;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 0 10px
+    }
+
+    .cal-nav-btn:hover {
+      background: var(--off2);
+      border-color: var(--border2)
+    }
+
+    .cal-nav-btn.arrow {
+      width: 32px;
+      padding: 0;
+      font-size: 16px
+    }
+
+    .cal-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px
+    }
+
+    .cal-day-name {
+      text-align: center;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 8px 0 12px
+    }
+
+    .cal-day-name.wknd {
+      color: var(--wknd-name)
+    }
+
+    .cal-day {
+      min-height: 70px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 9px 4px 7px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s, transform .1s;
+      gap: 3px;
+      border: 1px solid transparent;
+      position: relative;
+      background: var(--off)
+    }
+
+    .cal-day:hover {
+      background: var(--off2);
+      border-color: var(--border);
+      transform: translateY(-1px)
+    }
+
+    .cal-day.wknd {
+      background: var(--wknd-bg)
+    }
+
+    .cal-day.wknd:hover {
+      background: #e5e0d9;
+      border-color: var(--border2);
+      transform: translateY(-1px)
+    }
+
+    .cal-day.today {
+      background: var(--red) !important;
+      border-color: var(--red) !important
+    }
+
+    .cal-day.today:hover {
+      background: #c0241c !important;
+      transform: translateY(-1px)
+    }
+
+    .cal-day.today .cal-day-num {
+      color: #fff !important
+    }
+
+    .cal-day.empty {
+      background: transparent !important;
+      border-color: transparent !important;
+      opacity: 0;
+      pointer-events: none
+    }
+
+    .cal-day.past {
+      opacity: .4;
+      filter: saturate(.3)
+    }
+
+    .cal-day.past:hover {
+      opacity: .6;
+      filter: saturate(.5)
+    }
+
+    .cal-day-num {
+      font-family: var(--fh);
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--ink)
+    }
+
+    .cal-day.wknd .cal-day-num {
+      color: var(--wknd-num)
+    }
+
+    .cal-dots {
+      display: flex;
+      gap: 4px;
+      justify-content: center;
+      margin-top: 5px;
+      flex-wrap: wrap
+    }
+
+    .cal-dot-bar {
+      height: 4px;
+      width: 22px;
+      border-radius: 4px;
+      flex-shrink: 0;
+      opacity: .85
+    }
+
+    .cal-day:not(.empty):hover::after {
+      content: attr(data-count);
+      position: absolute;
+      bottom: 6px;
+      font-size: 9px;
+      color: var(--muted2);
+      font-weight: 500
+    }
+
+    .day-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 10, 10, .55);
+      z-index: 960;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .22s
+    }
+
+    .day-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .day-modal {
+      background: var(--white);
+      border-radius: 18px;
+      width: 100%;
+      max-width: 540px;
+      height: 88vh;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, .3);
+      transform: translateY(24px) scale(.97);
+      transition: transform .28s cubic-bezier(.4, 0, .2, 1);
+      overflow: hidden
+    }
+
+    .day-overlay.open .day-modal {
+      transform: translateY(0) scale(1)
+    }
+
+    .dm-header {
+      padding: 20px 22px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      flex-shrink: 0
+    }
+
+    .dm-weekday {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      margin-bottom: 5px
+    }
+
+    .dm-datenum {
+      font-family: var(--fh);
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+      color: var(--black);
+      line-height: 1
+    }
+
+    .dm-datenum .accent {
+      color: var(--red)
+    }
+
+    .dm-header-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 8px
+    }
+
+    .dm-close {
+      width: 34px;
+      height: 34px;
+      border-radius: 9px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: .18s
+    }
+
+    .dm-close:hover {
+      background: var(--off2);
+      color: var(--ink);
+      border-color: var(--border2)
+    }
+
+    .dm-count {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3px 10px;
+      white-space: nowrap
+    }
+
+    .dm-body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden
+    }
+
+    .dm-panel {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 20px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      min-height: 0;
+      height: 0
+    }
+
+    .dm-panel.hidden {
+      display: none
+    }
+
+    .dm-detail-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      height: 0;
+      overflow: hidden
+    }
+
+    .dm-detail-wrap.hidden {
+      display: none
+    }
+
+    .ev-card {
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      cursor: pointer;
+      transition: border-color .18s, box-shadow .18s, transform .15s;
+      background: var(--white)
+    }
+
+    .ev-card:hover {
+      border-color: var(--border2);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, .08);
+      transform: translateY(-1px)
+    }
+
+    .ev-card.no-detail {
+      cursor: default
+    }
+
+    .ev-card.no-detail:hover {
+      transform: none;
+      box-shadow: none;
+      border-color: var(--border)
+    }
+
+    .ev-top {
+      display: flex
+    }
+
+    .ev-stripe {
+      width: 4px;
+      flex-shrink: 0
+    }
+
+    .ev-main {
+      flex: 1;
+      padding: 13px 14px 11px;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    .ev-main-left {
+      flex: 1;
+      min-width: 0
+    }
+
+    .ev-title {
+      font-family: var(--fb);
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--black);
+      letter-spacing: -.01em;
+      line-height: 1.35;
+      margin-bottom: 7px
+    }
+
+    .ev-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 20px
+    }
+
+    .ev-badge-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      display: inline-block
+    }
+
+    .ev-time-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px
+    }
+
+    .ev-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--off);
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border)
+    }
+
+    .ev-arrow {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: var(--muted2);
+      flex-shrink: 0;
+      transition: background .15s, color .15s, transform .15s;
+      font-weight: 700
+    }
+
+    .ev-card:hover .ev-arrow {
+      background: var(--off2);
+      color: var(--ink);
+      transform: translateX(2px)
+    }
+
+    .dm-detail-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 20px 12px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .dm-back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      border-radius: 8px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: .18s;
+      white-space: nowrap
+    }
+
+    .dm-back-btn:hover {
+      background: var(--off2);
+      color: var(--ink);
+      border-color: var(--border2)
+    }
+
+    .dm-detail-badge {
+      margin-left: auto
+    }
+
+    .dm-detail-body {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 16px 18px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 0;
+      height: 0
+    }
+
+    .dd-title {
+      font-family: var(--fb);
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--black);
+      letter-spacing: -.01em;
+      line-height: 1.4
+    }
+
+    .dd-time-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap
+    }
+
+    .dd-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--off);
+      padding: 5px 13px;
+      border-radius: 20px;
+      border: 1px solid var(--border)
+    }
+
+    .dd-divider {
+      height: 1px;
+      background: var(--border)
+    }
+
+    .dd-gcal {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      background: var(--off);
+      transition: .18s;
+      width: fit-content
+    }
+
+    .dd-gcal:hover {
+      background: var(--off2);
+      border-color: var(--border2)
+    }
+
+    .dm-empty {
+      color: var(--muted2);
+      font-size: 13px;
+      text-align: center;
+      padding: 28px 0
+    }
+
+    .dd-acc {
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      background: var(--white)
+    }
+
+    .dd-acc-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px;
+      cursor: pointer;
+      user-select: none;
+      background: var(--off);
+      transition: background .15s;
+      border: none;
+      width: 100%;
+      text-align: left
+    }
+
+    .dd-acc-header:hover {
+      background: var(--off2)
+    }
+
+    .dd-acc-icon {
+      font-size: 13px;
+      opacity: .7;
+      flex-shrink: 0
+    }
+
+    .dd-acc-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      flex: 1
+    }
+
+    .dd-acc-meta {
+      font-size: 10px;
+      color: var(--muted2);
+      background: var(--off2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2px 8px;
+      white-space: nowrap
+    }
+
+    .dd-acc-chevron {
+      font-size: 12px;
+      color: var(--muted2);
+      margin-left: 4px;
+      display: inline-block;
+      line-height: 1
+    }
+
+    .dd-acc .dd-acc-chevron {
+      color: var(--muted2)
+    }
+
+    .dd-acc-body {
+      display: none
+    }
+
+    .dd-acc.open .dd-acc-body {
+      display: block
+    }
+
+    .dd-acc-body-inner {
+      padding: 12px 14px 14px
+    }
+
+    .dd-people {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px
+    }
+
+    .dd-person {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--ink)
+    }
+
+    .dd-person-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .dd-vehicles {
+      display: flex;
+      flex-direction: column;
+      gap: 5px
+    }
+
+    .dd-vehicle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--off);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 12px;
+      font-size: 12px;
+      font-weight: 500
+    }
+
+    .dd-val {
+      font-size: 13px;
+      color: var(--ink);
+      line-height: 1.65;
+      word-break: break-word
+    }
+
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 10px 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--muted2);
+      background: var(--white)
+    }
+
+    .foot-logo {
+      font-family: var(--fh);
+      font-weight: 800;
+      font-size: 13px;
+      color: var(--black)
+    }
+
+    .foot-logo .s {
+      color: var(--red)
+    }
+
+
+    /* ── Spacer + Botão Próximos Eventos ───────────── */
+
+    .btn-upcoming:hover {
+      border-color: var(--cal-crew);
+      color: var(--cal-crew);
+      background: rgba(15, 148, 144, .06);
+      box-shadow: 0 2px 10px rgba(15, 148, 144, .12)
+    }
+
+    .btn-upcoming.active {
+      background: rgba(15, 148, 144, .1);
+      border-color: rgba(15, 148, 144, .4);
+      color: var(--cal-crew)
+    }
+
+    .btn-upcoming.active .btn-dot {
+      opacity: 1
+    }
+
+    /* ── Split layout ──────────────────────────────── */
+    .cal-content-row {
+      display: flex;
+      flex: 1;
+      align-items: stretch
+    }
+
+    .cal-wrap {
+      flex: 1;
+      padding: 32px 52px;
+      transition: padding-right .35s cubic-bezier(.4, 0, .2, 1);
+      min-width: 0
+    }
+
+    .cal-content-row.split .cal-wrap {
+      padding-right: 28px
+    }
+
+    /* ── Painel Próximos Eventos ────────────────────── */
+    .upcoming-panel {
+      width: 0;
+      overflow: hidden;
+      flex-shrink: 0;
+      opacity: 0;
+      transition: width .38s cubic-bezier(.4, 0, .2, 1), opacity .28s ease;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      background: var(--off);
+      position: sticky;
+      top: var(--nav);
+      height: calc(100vh - var(--nav) - 49px);
+      position: sticky;
+      top: calc(var(--nav) + 49px);
+    }
+
+    .upcoming-panel.open {
+      width: 340px;
+      opacity: 1
+    }
+
+    .up-header {
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0
+    }
+
+    .up-title {
+      font-family: var(--fh);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--black);
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .up-title-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red) flex-shrink: 0
+    }
+
+    .up-sub {
+      font-size: 10px;
+      color: var(--muted2);
+      margin-top: 4px
+    }
+
+    .up-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 14px 20px;
+      min-height: 0
+    }
+
+    .up-body::-webkit-scrollbar {
+      width: 4px
+    }
+
+    .up-body::-webkit-scrollbar-track {
+      background: transparent
+    }
+
+    .up-body::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 4px
+    }
+
+    .up-month-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--muted2);
+      padding: 14px 2px 6px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 8px
+    }
+
+    .up-month-label:first-child {
+      padding-top: 4px
+    }
+
+    .up-ev {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--red);
+      border-radius: 0 10px 10px 0;
+      padding: 14px 16px;
+      margin-bottom: 8px;
+      transition: box-shadow .2s, transform .2s
+    }
+
+    .up-ev:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, .06);
+      transform: translateX(2px)
+    }
+
+    .up-ev::before {
+      display: none
+    }
+
+    .up-ev-name-row {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--black);
+      font-family: var(--fb);
+      letter-spacing: -.01em;
+      line-height: 1.4;
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 6px
+    }
+
+    .up-ev-code {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      color: var(--red);
+      background: var(--red-light);
+      border: 1px solid rgba(217, 43, 34, .2);
+      border-radius: 20px;
+      padding: 3px 10px;
+      flex-shrink: 0;
+      align-self: center
+    }
+
+    .up-ev-dates {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap
+    }
+
+    .up-ev-date-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      background: var(--off);
+      padding: 3px 10px;
+      border-radius: 20px;
+      border: 1px solid var(--border)
+    }
+
+    .up-ev-arrow {
+      font-size: 10px;
+      color: var(--muted2)
+    }
+
+
+    @media(max-width:700px) {
+      .uname {
+        display: none
+      }
+
+      .page-header,
+      .cal-wrap {
+        padding-left: 20px;
+        padding-right: 20px
+      }
+
+      .cal-filter-bar {
+        padding-left: 20px;
+        padding-right: 20px
+      }
+
+      .page-header {
+        flex-direction: column;
+        align-items: flex-start
+      }
+
+      footer {
+        padding: 12px 20px
+      }
+
+      .cal-day {
+        min-height: 52px;
+        padding: 7px 2px 5px
+      }
+
+      .cal-day-num {
+        font-size: 12px
+      }
+
+      .day-modal {
+        max-width: 100%;
+        border-radius: 14px
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: var(--fb);
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: .2s;
+      letter-spacing: .02em;
+      white-space: nowrap
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border)
+    }
+
+    .btn-ghost:hover {
+      color: var(--ink);
+      background: var(--white);
+      border-color: var(--border2)
+    }
+
+    .btn-red.active {
+      background: #c0241c
+    }
+
+    .btn-red.active {
+      color: #fff
+    }
+
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(220, 218, 215, .75);
+      backdrop-filter: blur(3px);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s
+    }
+
+    .loading-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .loading-logo-wrap {
+      position: relative;
+      width: 180px;
+      height: 68px
+    }
+
+    .loading-logo-base {
+      position: absolute;
+      inset: 0;
+      background: url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;
+      filter: brightness(0) opacity(.12)
+    }
+
+    .loading-logo-fill {
+      position: absolute;
+      inset: 0;
+      background: url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;
+      clip-path: inset(0 100% 0 0);
+      animation: fillRight 1.6s cubic-bezier(.4, 0, .2, 1) infinite
+    }
+
+    @keyframes fillRight {
+      0% {
+        clip-path: inset(0 100% 0 0)
+      }
+
+      60% {
+        clip-path: inset(0 0% 0 0)
+      }
+
+      85% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 1
+      }
+
+      100% {
+        clip-path: inset(0 0% 0 0);
+        opacity: 0
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <? var WU = webappUrl; ?>
+  <?
+  var userRole  = dados.sessao ? dados.sessao.role  : 'utilizador';
+  var userName  = dados.sessao ? dados.sessao.nome  : 'Utilizador';
+  var _parts = userName.trim().split(' ');
+  var userInit  = _parts[0].charAt(0).toUpperCase() + (_parts.length > 1 ? _parts[_parts.length-1].charAt(0).toUpperCase() : '');
+?>
+
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="drawer" id="drawer">
+    <div class="drawer-header">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="logo-box">R<span class="s">/</span>SE</div>
+        <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+      </div>
+      <button class="drawer-close" onclick="closeDrawer()">X</button>
+    </div>
+   <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span class="di-label">Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span class="di-label">Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span class="di-label">Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span class="di-label">Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span class="di-label">Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span class="di-label">RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span class="di-label">Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span class="di-label">Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span class="di-label">Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+    <div class="drawer-footer">
+      <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)">
+        <?= userName ?>
+      </div>
+      <div class="drawer-footer-text" style="margin-top:3px">
+        <?= userRole ?> &middot; RISE
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-left">
+      <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+      <div class="logo" onclick="navTo('<?= WU ?>')">
+        <div class="logo-box">R<span class="s">/</span>SE</div>
+        <span class="logo-text">Portal Interno</span>
+      </div>
+    </div>
+    <div class="nav-right">
+      <span class="uname"><?= userName ?></span>
+      <span class="role-badge rb-<?= userRole ?>"><?= userRole ?></span>
+      <div class="avatar">
+        <?= userInit ?>
+      </div>
+    </div>
+  </nav>
+
+  <div class="page-header">
+    <div>
+      <div class="ph-title">Calendário<span class="dot">.</span></div>
+      <div class="ph-sub">Férias, reuniões e eventos da equipa</div>
+    </div>
+    <div class="ph-actions">
+      <button class="btn btn-red" id="btnUpcoming" onclick="toggleUpcoming()">
+      <span id="btnUpcomingLabel">📋 Próximos Eventos</span>
+    </button>
+    </div>
+  </div>
+
+  <div class="cal-filter-bar">
+    <span class="filter-bar-label">Mostrar</span>
+    <div class="cal-check cc-crew active" id="chk-crew" onclick="toggleCal('crew')">
+      <span class="cal-check-dot"></span>CrewBrain<span class="cal-check-icon">&#10003;</span>
+    </div>
+    <!-- <div class="cal-check cc-reunioes active" id="chk-reunioes" onclick="toggleCal('reunioes')">
+      <span class="cal-check-dot"></span>Reuniões<span class="cal-check-icon">&#10003;</span>
+    </div>-->
+    <div class="cal-check cc-ferias active" id="chk-ferias" onclick="toggleCal('ferias')">
+      <span class="cal-check-dot"></span>Férias<span class="cal-check-icon">&#10003;</span>
+    </div>
+
+  </div>
+
+  <div class="cal-content-row" id="calContentRow">
+    <div class="cal-wrap">
+      <div class="cal-header">
+        <div class="cal-month" id="calMonth"></div>
+        <div class="cal-nav-btns">
+          <button class="cal-nav-btn arrow" onclick="changeMonth(-1)">&#8249;</button>
+          <button class="cal-nav-btn" onclick="goToday()">Hoje</button>
+          <button class="cal-nav-btn arrow" onclick="changeMonth(1)">&#8250;</button>
+        </div>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
+    </div>
+
+    <div class="upcoming-panel" id="upcomingPanel">
+      <div class="up-header">
+        <div class="up-title">
+          <span class="up-title-dot"></span>
+          Próximos Eventos
+        </div>
+      </div>
+      <div class="up-body" id="upcomingBody"></div>
+    </div>
+  </div>
+
+  <div class="day-overlay" id="dayOverlay">
+    <div class="day-modal">
+      <div class="dm-header">
+        <div>
+          <div class="dm-weekday" id="dmWeekday"></div>
+          <div class="dm-datenum" id="dmDatenum"></div>
+        </div>
+        <div class="dm-header-right">
+          <button class="dm-close" onclick="closeDayModal()">X</button>
+          <div class="dm-count" id="dmCount"></div>
+        </div>
+      </div>
+      <div class="dm-body">
+        <div class="dm-panel" id="dmList"></div>
+        <div class="dm-detail-wrap hidden" id="dmDetailWrap">
+          <div class="dm-detail-header">
+            <button class="dm-back-btn" onclick="showList()">&larr; Voltar</button>
+            <div class="dm-detail-badge" id="dmDetailBadge"></div>
+          </div>
+          <div class="dm-detail-body" id="dmDetailBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-logo-wrap">
+      <div class="loading-logo-base"></div>
+      <div class="loading-logo-fill"></div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="foot-logo">R<span class="s">/</span>SE &middot; Portal Interno</div>
+    <div>&copy; 2026 RISE &middot; a Europalco company</div>
+    <div>Departamento de Planeamento &middot;
+      <?= dados.dataHoje ?>
+    </div>
+  </footer>
+
+  <script>
+    var CALS = {
+  crew:     { label:'CrewBrain',           color:'#0f9490' },
+  reunioes: { label:'Reuniões',            color:'#d92b22' },
+  ferias:   { label:'Férias', color:'#7c3aed' }
+};
+var calActive = { crew:true, reunioes:false, ferias:true };
+
+var EVENTS = (function(){
+  try{
+    var raw=<?!= JSON.stringify(dados.eventos || []) ?>;
+    if(!Array.isArray(raw)) return [];
+    return raw.map(function(e){
+      if(e.dt !== undefined){
+        return { date:e.dt, dateEnd:e.de, name:e.n, cal:e.c,
+                 allDay:!!e.a, startTime:e.st, endTime:e.et,
+                 location:e.l, description:e.ds };
+      }
+      return e;
+    });
+  }catch(e){ return []; }
+})();
+
+var DIAS = ['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+var DIAS_FULL_JS = ['Domingo','Segunda-feira','Terca-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sabado'];
+var MESES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+var cur = new Date();
+window._modalEvts = [];
+
+/* ── Scroll lock manager ─────────────────────────────────────
+   Counts active locks so drawer + modal never cancel each other.
+   Only releases overflow when ALL layers are closed.
+────────────────────────────────────────────────────────────*/
+var _overflowLocks = 0;
+function lockScroll(){
+  _overflowLocks++;
+  document.body.style.overflow = 'hidden';
+}
+function unlockScroll(){
+  _overflowLocks = Math.max(0, _overflowLocks - 1);
+  if(_overflowLocks === 0) document.body.style.overflow = '';
+}
+
+function activeEvts(){ return EVENTS.filter(function(e){ return calActive[e.cal]; }); }
+
+function renderCal(){
+  var y=cur.getFullYear(), m=cur.getMonth();
+  document.getElementById('calMonth').textContent = MESES[m]+' '+y;
+  var g=document.getElementById('calGrid');
+  g.innerHTML='';
+  DIAS.forEach(function(d,i){
+    var el=document.createElement('div');
+    el.className='cal-day-name'+(i>=5?' wknd':'');
+    el.textContent=d;
+    g.appendChild(el);
+  });
+  var jsFirst=new Date(y,m,1).getDay();
+  var offset=(jsFirst+6)%7;
+  var numDays=new Date(y,m+1,0).getDate();
+  var today=new Date();
+  var evts=activeEvts();
+  for(var i=0;i<offset;i++){
+    var el=document.createElement('div');el.className='cal-day empty';g.appendChild(el);
+  }
+  for(var d=1;d<=numDays;d++){
+    var jsDay=new Date(y,m,d).getDay();
+    var colIdx=(jsDay+6)%7;
+    var isWknd=colIdx>=5;
+    var isT=today.getDate()===d&&today.getMonth()===m&&today.getFullYear()===y;
+    var ds=y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var devs=evts.filter(function(e){return e.date===ds;});
+    var el=document.createElement('div');
+    var isPast=new Date(y,m,d)<new Date(today.getFullYear(),today.getMonth(),today.getDate());el.className='cal-day'+(isWknd?' wknd':'')+(isT?' today':'')+(isPast&&!isT?' past':'');
+    if(devs.length) el.setAttribute('data-count',devs.length+' evento'+(devs.length>1?'s':''));
+    var numEl=document.createElement('span');numEl.className='cal-day-num';numEl.textContent=d;el.appendChild(numEl);
+    if(devs.length){
+      var dotsEl=document.createElement('div');dotsEl.className='cal-dots';
+      var seen={};
+      devs.forEach(function(ev){
+        if(seen[ev.cal])return;seen[ev.cal]=true;
+        var bar=document.createElement('div');bar.className='cal-dot-bar';
+        bar.style.background=CALS[ev.cal]?CALS[ev.cal].color:'#9e9e9e';
+        dotsEl.appendChild(bar);
+      });
+      el.appendChild(dotsEl);
+    }
+    (function(el,ds){el.addEventListener('click',function(){openDayModal(ds);});})(el,ds);
+    g.appendChild(el);
+  }
+}
+
+function openDayModal(ds){
+  var parts=ds.split('-');
+  var dateObj=new Date(parseInt(parts[0]),parseInt(parts[1])-1,parseInt(parts[2]));
+  document.getElementById('dmWeekday').textContent=DIAS_FULL_JS[dateObj.getDay()];
+  document.getElementById('dmDatenum').innerHTML='<span class="accent">'+parts[2]+'</span> '+MESES[parseInt(parts[1])-1]+' '+parts[0];
+  var evts=activeEvts().filter(function(e){return e.date===ds;});
+  document.getElementById('dmCount').textContent=evts.length?evts.length+' evento'+(evts.length!==1?'s':''):'Sem eventos';
+  window._modalEvts=evts;
+  var list=document.getElementById('dmList');
+  if(!evts.length){
+    list.innerHTML='<div class="dm-empty">Sem eventos neste dia para os calendários selecionados.</div>';
+  }else{
+    list.innerHTML=evts.map(function(e,i){return buildListCard(e,i);}).join('');
+  }
+  showList();
+  document.getElementById('dmList').scrollTop=0;
+  document.getElementById('dayOverlay').classList.add('open');
+  lockScroll();
+}
+
+function showList(){
+  document.getElementById('dmList').classList.remove('hidden');
+  document.getElementById('dmDetailWrap').classList.add('hidden');
+}
+
+function showDetail(idx){
+  var e=window._modalEvts[idx];
+  if(!e) return;
+  renderDetail(e);
+  document.getElementById('dmList').classList.add('hidden');
+  document.getElementById('dmDetailWrap').classList.remove('hidden');
+  document.getElementById('dmDetailBody').scrollTop=0;
+}
+
+function closeDayModal(){
+  document.getElementById('dayOverlay').classList.remove('open');
+  unlockScroll();
+}
+
+function cleanEventName(name){
+  if(!name) return name;
+  var codeMatch = name.match(/\b(C\d{5,8})\b/i);
+  var code = codeMatch ? codeMatch[1].toUpperCase() : null;
+  var parenMatch = name.match(/\(([^)]+)\)/);
+  var categories = '';
+  if(parenMatch){
+    var parts = parenMatch[1].split(',').map(function(p){ return p.trim(); });
+    var filtered = parts.filter(function(p){
+      return !/^booked$/i.test(p)
+          && !/gestor\s+de\s+projecto/i.test(p)
+          && !/project\s+manager/i.test(p);
+    });
+    if(filtered.length) categories = ' ('+filtered.join(', ')+')';
+  }
+  var base = name.replace(/\s*\([^)]*\)/g, '').trim();
+  if(code){
+    var codeIdx = base.toUpperCase().indexOf(code.toUpperCase());
+    if(codeIdx !== -1) base = base.slice(0, codeIdx + code.length).trim();
+    base = base.replace(/\s*\/\s*$/, '');
+  } else {
+    base = base.replace(/\s*\/\s*(?:Mo|Tu|We|Th|Fr|Sa|Su),?\s*\d{2}-\d{2}-\d{2,4}.*$/i, '').trim();
+    base = base.replace(/\s*\/\s*\d{2}-\d{2}-\d{2,4}.*$/i, '').trim();
+  }
+  return base + categories;
+}
+
+function buildListCard(e,idx){
+  var cal=CALS[e.cal]||{color:'#9e9e9e',label:'--'};
+  var c=cal.color,rgb=hexRgb(c);
+  var bg='rgba('+rgb+',.08)',bd='rgba('+rgb+',.22)';
+  var badge='<span class="ev-badge" style="background:'+bg+';color:'+c+';border:1px solid '+bd+'">'+'<span class="ev-badge-dot" style="background:'+c+'"></span>'+esc(cal.label)+'</span>';
+  var timeHtml='';
+  if(!e.allDay&&e.startTime){
+    timeHtml='<div class="ev-time-row"><span class="ev-chip">&#128336; '+esc(e.startTime)+(e.endTime?' - '+esc(e.endTime):'')+'</span></div>';
+  }else if(e.allDay){
+    timeHtml='<div class="ev-time-row"><span class="ev-chip">&#128197; Dia todo</span></div>';
+  }
+  var hasDetails=!!(e.location||e.description);
+  var arrow=hasDetails?'<div class="ev-arrow">&#8250;</div>':'';
+  var cls='ev-card'+(hasDetails?'':' no-detail');
+  var onclick=hasDetails?'onclick="showDetail('+idx+')"':'';
+  return '<div class="'+cls+'" '+onclick+'>'+'<div class="ev-top">'+'<div class="ev-stripe" style="background:'+c+'"></div>'+'<div class="ev-main">'+'<div class="ev-main-left">'+'<div class="ev-title">'+esc(cleanEventName(e.name))+'</div>'+badge+timeHtml+'</div>'+arrow+'</div>'+'</div></div>';
+}
+
+function renderDetail(e){
+  var cal=CALS[e.cal]||{color:'#9e9e9e',label:'--'};
+  var c=cal.color,rgb=hexRgb(c);
+  var bg='rgba('+rgb+',.1)',bd='rgba('+rgb+',.25)';
+  document.getElementById('dmDetailBadge').innerHTML='<span class="ev-badge" style="background:'+bg+';color:'+c+';border:1px solid '+bd+';font-size:10px;padding:4px 12px">'+'<span class="ev-badge-dot" style="background:'+c+'"></span>'+esc(cal.label)+'</span>';
+  var html='';
+  html+='<div class="dd-title">'+esc(cleanEventName(e.name))+'</div>';
+  if(!e.allDay&&e.startTime){
+    html+='<div class="dd-time-row"><span class="dd-chip">&#128336; '+esc(e.startTime)+(e.endTime?' - '+esc(e.endTime):'')+'</span></div>';
+  }else if(e.allDay){
+    html+='<div class="dd-time-row"><span class="dd-chip">&#128197; Dia todo</span></div>';
+  }
+  if(e.location||e.description) html+='<div class="dd-divider"></div>';
+  if(e.location) html+=ddSect('&#128205;','Localização','<span class="dd-val">'+esc(e.location)+'</span>',null,true);
+  if(e.description) html+=parseDesc(e.description,c);
+  if(e.gcalLink) html+='<a class="dd-gcal" href="'+esc(e.gcalLink)+'" target="_blank" style="color:'+c+'">&#128279; Ver no Google Calendar &#8599;</a>';
+  document.getElementById('dmDetailBody').innerHTML=html;
+  initAccordions(document.getElementById('dmDetailBody'));
+}
+
+function traduzLabel(l){
+  if(!l) return l;
+  var m={'category':'Categoria','categories':'Categoria','employees':'Técnicos','employee':'Técnico','vehicles':'Veículos','vehicle':'Veículo','notes':'Notas','note':'Nota'};
+  var base=l.toLowerCase().replace(/\s*\([^)]*\)\s*$/,'').trim();return m[base]||l;
+
+}
+function ddSect(icon,label,contentHtml,meta,startOpen){
+  var id='acc-'+Math.random().toString(36).slice(2,8);
+  var openCls=(startOpen!==false)?' open':'';
+  return '<div class="dd-acc'+openCls+'" id="'+id+'">'+'<button class="dd-acc-header" onclick="toggleAcc(\''+id+'\')">'+'<span class="dd-acc-icon">'+icon+'</span>'+'<span class="dd-acc-label">'+(label?esc(traduzLabel(label)):'')+'</span>'+(meta?'<span class="dd-acc-meta">'+esc(meta)+'</span>':'')+'<span class="dd-acc-chevron">'+(openCls?' ▾':' ▸')+'</span>'+'</button>'+'<div class="dd-acc-body"><div class="dd-acc-body-inner">'+contentHtml+'</div></div>'+'</div>';
+}
+
+function initAccordions(container){}
+function toggleAcc(id){
+  var el=document.getElementById(id);
+  if(!el) return;
+  el.classList.toggle('open');
+  var chev=el.querySelector('.dd-acc-chevron');
+  if(chev) chev.textContent = el.classList.contains('open') ? '▾' : '▸';
+}
+
+function parseDesc(desc,calColor){
+  var html='';
+  var sections=desc.trim().split(/\r?\n(?:\r?\n)+/);
+/* Juntar secção de label vazia com a secção seguinte (ex: Vehicles:\n\nPass. -) */
+var merged=[];
+for(var si=0;si<sections.length;si++){
+  var s=sections[si].trim();
+  if(!s) continue;
+  var onlyHeader=/^[A-Za-z][^\n]*\(\d+\/\d+\)\s*:\s*$/.test(s);
+  if(onlyHeader && si+1<sections.length){
+    merged.push(s+'\n'+sections[++si].trim());
+  } else {
+    merged.push(s);
+  }
+}
+sections=merged;
+  sections.forEach(function(sec){
+    sec=sec.trim();if(!sec)return;
+    var lines=sec.split(/\r?\n/).map(function(l){return l.trim();}).filter(Boolean);
+    if(!lines.length)return;
+    var heading=lines[0];
+    var ci=heading.indexOf(':');
+    var hasC=ci>0&&ci<80;
+    if(lines.length===1){
+      if(hasC){
+        var lbl=heading.slice(0,ci).trim(),val=heading.slice(ci+1).trim();
+        if(val) html+=ddSect(iconFor(lbl),lbl,'<span class="dd-val">'+esc(val)+'</span>',null,true);
+      }else{
+        html+=ddSect('&#128221;','Descrição','<span class="dd-val">'+esc(heading)+'</span>',null,true);
+      }
+      return;
+    }
+    if(hasC){
+      var lbl=heading.slice(0,ci).trim();
+      var items=lines.slice(1).filter(function(l){return l.trim();});
+      if(!items.length){
+  /* Vehicles com items no parágrafo seguinte — ignorar secção vazia, o Pass. será apanhado abaixo */
+  return;
+}
+      var isPeople=/employee|colabora|person|pessoal/i.test(lbl);
+      var isVeh=/vehicles?|ve[ií]culos?|viatura|pass\./i.test(lbl)||items.some(function(l){return /^pass\.\s*-/i.test(l);})
+      var metaMatch=heading.match(/\((\d+\/\d+|\d+)\)/);
+      var meta=metaMatch?metaMatch[1]:items.length>1?items.length+'':'';
+      if(isPeople){
+        var pillsHtml='<div class="dd-people">'+items.map(function(p){
+          var clean=p.replace(/\s*\([^)]*\)?\s*$/,'').trim();
+          return '<span class="dd-person"><span class="dd-person-dot" style="background:'+calColor+'"></span>'+esc(clean)+'</span>';
+        }).join('')+'</div>';
+        html+=ddSect('&#128101;',lbl,pillsHtml,meta,true);
+      }else if(isVeh){
+        var vHtml='<div class="dd-vehicles">'+items.map(function(v){return '<span class="dd-vehicle"><span class="dd-person-dot" style="background:#9e9e9e"></span>'+esc(v)+'</span>';}).join('')+'</div>';
+        html+=ddSect('&#128663;',lbl,vHtml,meta,true);
+      }else{
+        html+=ddSect(iconFor(lbl),lbl,'<span class="dd-val">'+items.map(esc).join('<br>')+'</span>',meta,true);
+      }
+      return;
+    }
+    var allVeh=lines.every(function(l){return /^pass\.\s*-/i.test(l);});
+if(allVeh){var vHtml='<div class="dd-vehicles">'+lines.map(function(v){return '<span class="dd-vehicle">&#128663; '+esc(v)+'</span>';}).join('')+'</div>';html+=ddSect('&#128663;','Veículos',vHtml,lines.length+'',true);}
+else{html+=ddSect('&#128221;','Descrição','<span class="dd-val">'+lines.map(esc).join('<br>')+'</span>',null,true);}
+  });
+  return html;
+}
+
+function iconFor(lbl){
+  var l=(lbl||'').toLowerCase();
+  if(/categ|type|tipo/.test(l)) return '&#127991;';
+  if(/employee|colabora/)       return '&#128101;';
+  if(/vehicle|viatura/)         return '&#128663;';
+  if(/locat|local/)             return '&#128205;';
+  if(/note|nota|obs/)           return '&#128221;';
+  return '&#128203;';
+}
+
+function hexRgb(h){
+  return parseInt(h.slice(1,3),16)+','+parseInt(h.slice(3,5),16)+','+parseInt(h.slice(5,7),16);
+}
+function esc(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function changeMonth(d){cur.setMonth(cur.getMonth()+d);renderCal();}
+function goToday(){cur=new Date();renderCal();}
+function toggleCal(key){
+  calActive[key]=!calActive[key];
+  document.getElementById('chk-'+key).classList.toggle('active',calActive[key]);
+  renderCal();
+}
+
+function navTo(url){
+  document.getElementById('loadingOverlay').classList.add('open');
+  setTimeout(function(){
+    try {
+      window.top.location.href = url;
+    } catch(e) {
+      window.location.href = url;
+    }
+  }, 50);
+}
+
+/* ── Drawer ──────────────────────────────────────────────────
+   Guards (if drawerOpen return) prevent double lock/unlock.
+   Overlay wired via addEventListener - isolated from modal.
+────────────────────────────────────────────────────────────*/
+var drawerOpen = false;
+
+function toggleDrawer(){ drawerOpen ? closeDrawer() : openDrawer(); }
+
+function openDrawer(){
+  if(drawerOpen) return;
+  drawerOpen = true;
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.getElementById('hamburger').classList.add('open');
+  lockScroll();
+}
+
+function closeDrawer(){
+  if(!drawerOpen) return;
+  drawerOpen = false;
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  unlockScroll();
+}
+
+/* Overlay click closes ONLY the drawer, not the modal */
+document.getElementById('drawerOverlay').addEventListener('click', function(){ closeDrawer(); });
+
+/* Escape key: drawer first, then detail panel, then modal */
+document.addEventListener('keydown', function(e){
+  if(e.key !== 'Escape') return;
+  if(drawerOpen){ closeDrawer(); return; }
+  if(!document.getElementById('dmDetailWrap').classList.contains('hidden')){ showList(); return; }
+  if(document.getElementById('dayOverlay').classList.contains('open')){ closeDayModal(); }
+});
+
+var MESES_S = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+var upcomingOpen = false;
+
+function toggleUpcoming(){
+  upcomingOpen = !upcomingOpen;
+  var panel = document.getElementById('upcomingPanel');
+  var row   = document.getElementById('calContentRow');
+  var btn   = document.getElementById('btnUpcoming');
+  var lbl   = document.getElementById('btnUpcomingLabel');
+  if(upcomingOpen){
+    panel.classList.add('open'); row.classList.add('split');
+    btn.classList.add('active');
+    lbl.textContent = '📋 Esconder Próximos Eventos';
+    renderUpcoming();
+  } else {
+    panel.classList.remove('open'); row.classList.remove('split');
+    btn.classList.remove('active');
+    lbl.textContent = '📋 Próximos Eventos';
+  }
+}
+
+function parseDateStr(ds){
+  if(!ds) return null;
+  var p=ds.split('-');
+  if(p.length!==3) return null;
+  return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]));
+}
+
+function fmtDate(ds){
+  if(!ds) return '';
+  var p=ds.split('-');
+  if(p.length!==3) return ds;
+  return p[2]+' '+MESES_S[parseInt(p[1])-1]+' '+p[0];
+}
+
+function extractCode(name){
+  var m=(name||'').match(/\b(C\d{5,8})\b/i);
+  return m ? m[1].toUpperCase() : null;
+}
+
+function extractBaseName(name){
+  var codeMatch = (name||'').match(/^(.*?)\s*\/\s*(C\d{5,8})/i);
+  if(codeMatch) return { name: codeMatch[1].trim(), code: codeMatch[2].toUpperCase() };
+  return { name: (name||'').replace(/\s*\/\s*\d{1,2}-\d{2}-\d{2,4}(\s*\(.*\))?\s*$/, '').trim(), code: null };
+}
+
+function renderUpcoming(){
+  var today=new Date(); today.setHours(0,0,0,0);
+  var evts=EVENTS.filter(function(e){
+    if(e.cal!=='crew') return false;
+    if(/^visita\s+t[eé]cnica/i.test((e.name||'').trim())) return false;
+    var d=parseDateStr(e.date);
+    return d && d>=today;
+  });
+  evts.sort(function(a,b){ return parseDateStr(a.date)-parseDateStr(b.date); });
+
+  var groups=[], keyMap={};
+  evts.forEach(function(e){
+    var code=extractCode(e.name);
+    if(code){
+      if(keyMap[code]!==undefined){
+        var g=groups[keyMap[code]];
+        var d=parseDateStr(e.date);
+        var de=e.dateEnd?parseDateStr(e.dateEnd):null;
+        if(d<parseDateStr(g.minDate)) g.minDate=e.date;
+        if(d>parseDateStr(g.maxDate)) g.maxDate=e.date;
+        if(de&&de>parseDateStr(g.maxDate)) g.maxDate=e.dateEnd;
+      } else {
+        var maxD=e.date;
+        if(e.dateEnd&&parseDateStr(e.dateEnd)>parseDateStr(maxD)) maxD=e.dateEnd;
+        keyMap[code]=groups.length;
+        var parsed=extractBaseName(e.name);
+groups.push({baseName:parsed.name,code:parsed.code,minDate:e.date,maxDate:maxD});
+      }
+    } else {
+      var maxD=e.date;
+      if(e.dateEnd&&parseDateStr(e.dateEnd)>parseDateStr(maxD)) maxD=e.dateEnd;
+      groups.push({baseName:e.name,minDate:e.date,maxDate:maxD});
+    }
+  });
+  groups.sort(function(a,b){return parseDateStr(a.minDate)-parseDateStr(b.minDate);});
+
+  var body=document.getElementById('upcomingBody');
+  if(!groups.length){ body.innerHTML='<div class="up-empty">Sem próximos eventos CrewBrain.</div>'; return; }
+
+  var months={},monthOrder=[];
+  groups.forEach(function(g){
+    var d=parseDateStr(g.minDate);
+    var mk=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+    var ml=MESES[d.getMonth()]+' '+d.getFullYear();
+    if(!months[mk]){months[mk]={label:ml,items:[]};monthOrder.push(mk);}
+    months[mk].items.push(g);
+  });
+
+  var html='';
+  monthOrder.forEach(function(mk){
+    var mo=months[mk];
+    html+='<div class="up-month-label">'+esc(mo.label)+'</div>';
+    mo.items.forEach(function(g){
+      var sameDay=g.minDate===g.maxDate;
+      var dHtml=sameDay
+        ?'<span class="up-ev-date-chip">&#128197; '+esc(fmtDate(g.minDate))+'</span>'
+        :'<span class="up-ev-date-chip">&#128197; '+esc(fmtDate(g.minDate))+'</span>'
+         +'<span class="up-ev-arrow">&#8594;</span>'
+         +'<span class="up-ev-date-chip">'+esc(fmtDate(g.maxDate))+'</span>';
+      var codeTag = g.code ? '<span class="up-ev-code">'+esc(g.code)+'</span>' : '';
+html+='<div class="up-ev">'
+    +'<div class="up-ev-name-row">'+esc(g.baseName)+codeTag+'</div>'
+    +'<div class="up-ev-dates">'+dHtml+'</div>'
+    +'</div>';
+    });
+  });
+  body.innerHTML=html;
+}
+
+
+
+renderCal();
+  </script>
+</body>
+
+</html>

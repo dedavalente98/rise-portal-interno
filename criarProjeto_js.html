@@ -1,0 +1,153 @@
+<script>
+  var enviandoProjeto = false;
+
+function enviarProjeto() {
+  if (enviandoProjeto) return;
+
+  var nrProjeto = document.querySelector("[name='ID_Projeto']");
+
+  if (!nrProjeto || !nrProjeto.value.trim()) {
+    mostrarErro("Por favor, preencha o Nº do Projeto na secção 'Informações Gerais'.");
+    var secGeral = document.getElementById('sec-geral');
+    if (secGeral.style.display === 'none' || secGeral.style.display === '') toggleSecao('sec-geral');
+    setTimeout(() => { nrProjeto.focus(); nrProjeto.classList.add('is-invalid'); }, 300);
+    return;
+  }
+
+  if (!nrProjeto.value.match(/^C/)) {
+    mostrarErro("O Nº do Projeto deve começar com a letra 'C' (exemplo: C0001).");
+    var secGeral = document.getElementById('sec-geral');
+    if (secGeral.style.display === 'none' || secGeral.style.display === '') toggleSecao('sec-geral');
+    setTimeout(() => { nrProjeto.focus(); nrProjeto.classList.add('is-invalid'); }, 300);
+    return;
+  }
+
+  // Validar datas
+var diaInicio = document.querySelector("[name='Dia_Inicio']")?.value;
+var diaFim = document.querySelector("[name='Dia_Fim']")?.value;
+if (diaInicio && diaFim && diaFim < diaInicio) {
+  mostrarErro("A data de fim não pode ser anterior à data de início do evento.");
+  var secGeral = document.getElementById('sec-geral');
+  if (secGeral.style.display === 'none' || secGeral.style.display === '') toggleSecao('sec-geral');
+  setTimeout(() => {
+    document.querySelector("[name='Dia_Fim']").classList.add('is-invalid');
+  }, 300);
+  return;
+}
+
+  // Validar Freelancers
+  var nrFree = parseInt(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+  if (nrFree > 0) {
+    var secFree = document.getElementById('sec-freelancers');
+    if (secFree.dataset.loaded === "0") { carregarSecao('sec-freelancers'); secFree.dataset.loaded = "1"; }
+    var confirmadosFree = [...document.querySelectorAll("#listaFree select")].filter(s => s.value === "Confirmado").length;
+    if (confirmadosFree > nrFree) {
+      mostrarErro(`Tens ${confirmadosFree} freelancers confirmados mas o limite é ${nrFree}. Corrige antes de gravar.`);
+      return;
+    }
+  }
+
+  // Validar Subcontratados
+  var nrSub = parseInt(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+  if (nrSub > 0) {
+    var secSub = document.getElementById('sec-subcontratados');
+    if (secSub.dataset.loaded === "0") { carregarSecao('sec-subcontratados'); secSub.dataset.loaded = "1"; }
+    var confirmadosSub = [...document.querySelectorAll("#listaSub select")].filter(s => s.value === "Confirmado").length;
+    if (confirmadosSub > nrSub) {
+      mostrarErro(`Tens ${confirmadosSub} subcontratados confirmados mas o limite é ${nrSub}. Corrige antes de gravar.`);
+      return;
+    }
+  }
+
+  nrProjeto.classList.remove('is-invalid');
+  fecharCardErro();
+
+  // Verificar discrepância Freelancers
+var nrFree = parseInt(document.querySelector("[name='Freelancers_Nr']")?.value || 0);
+var listaFree = document.querySelectorAll("#listaFree .item-row").length;
+if (listaFree !== nrFree) {
+  mostrarErro(`Existe uma discrepância entre o Nº de Freelancers das Informações Gerais (${nrFree}) e os Freelancers adicionados (${listaFree}).`);
+  return;
+}
+
+// Verificar discrepância Subcontratados
+var nrSub = parseInt(document.querySelector("[name='Subcontratados_Nr']")?.value || 0);
+var listaSub = document.querySelectorAll("#listaSub .item-row").length;
+if (listaSub !== nrSub) {
+  mostrarErro(`Existe uma discrepância entre o Nº de Subcontratados das Informações Gerais (${nrSub}) e os Subcontratados adicionados (${listaSub}).`);
+  return;
+}
+
+  enviandoProjeto = true;
+  var btnSubmit = document.querySelector('button[onclick="enviarProjeto()"]');
+  btnSubmit.disabled = true;
+  btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Criando...';
+
+  var dados = recolherDadosProjeto();
+
+  google.script.run
+    .withSuccessHandler(() => {
+  enviandoProjeto = false;
+  btnSubmit.disabled = false;
+  btnSubmit.innerHTML = 'Criar Projeto';
+  var modal = new bootstrap.Modal(document.getElementById('modalSucesso'));
+  modal.show();
+
+  // Disparar after em background — não bloqueia o ecrã
+  google.script.run.criarProjetoAfter(dados.projeto.ID_Projeto);
+})
+    .withFailureHandler(err => {
+      enviandoProjeto = false;
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = 'Criar Projeto';
+      console.error(err);
+      mostrarErro("Ocorreu um erro ao criar o projeto: " + err.message.replace("Error: ", ""));
+    })
+    .criarProjeto(dados);
+}
+
+function criarNovoProjeto() {
+  var modal = bootstrap.Modal.getInstance(document.getElementById('modalSucesso'));
+  if (modal) modal.hide();
+  location.hash = '';
+  setTimeout(() => { location.hash = 'criarProjeto'; }, 100);
+}
+
+function sairParaHome() {
+  location.hash = "";
+}
+
+function abrirModalCancelar(){
+  var modal = new bootstrap.Modal(document.getElementById('modalCancelar'));
+  modal.show();
+}
+
+function confirmarCancelar(){
+  voltarHome();
+}
+
+window.initPagina = function(){}
+
+document.addEventListener('DOMContentLoaded', function() {
+  setTimeout(() => {
+    var nrProjeto = document.querySelector("[name='ID_Projeto']");
+    if (nrProjeto) {
+      nrProjeto.addEventListener('input', function() {
+        this.classList.remove('is-invalid');
+        fecharCardErro();
+      });
+    }
+
+    // ADICIONA AQUI:
+    var diaFimInput = document.querySelector("[name='Dia_Fim']");
+    if (diaFimInput) {
+      diaFimInput.addEventListener('change', function() {
+        this.classList.remove('is-invalid');
+        fecharCardErro();
+      });
+    }
+
+  }, 500);
+});
+
+</script>

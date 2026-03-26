@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RISE – Acesso Negado</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --white:#ffffff;--off:#f5f4f2;--black:#0a0a0a;--ink:#1a1a1a;
+      --muted:#6b6b6b;--muted2:#9e9e9e;--border:#e2e0dd;
+      --red:#d92b22;--red-light:#fdf1f0;
+      --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+    }
+    body{
+      min-height:100vh;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      background:var(--off);font-family:var(--fb);color:var(--ink)
+    }
+    .card{
+      background:var(--white);border:1px solid var(--border);
+      border-radius:16px;padding:48px 40px;text-align:center;
+      max-width:440px;width:100%;margin:20px;
+      box-shadow:0 8px 40px rgba(0,0,0,.07);
+      border-top:3px solid var(--red)
+    }
+    .logo-box{
+      display:inline-block;background:var(--black);color:var(--white);
+      font-family:var(--fh);font-weight:800;font-size:16px;
+      padding:6px 14px;letter-spacing:.01em;margin-bottom:28px
+    }
+    .logo-box .s{color:var(--red)}
+    h1{
+      font-family:var(--fh);font-size:22px;font-weight:800;
+      color:var(--black);letter-spacing:-.03em;margin-bottom:12px
+    }
+    p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:10px}
+    a{color:var(--red);text-decoration:none;font-weight:600}
+    a:hover{text-decoration:underline}
+    .session-info{
+      margin-top:20px;padding-top:16px;border-top:1px solid var(--border);
+      font-size:11px;color:var(--muted2)
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo-box">R<span class="s">/</span>SE</div>
+    <h1>Acesso Negado.</h1>
+    <p>Não tens acesso a esta página, ou a tua conta Google não está registada no portal.</p>
+    <p>Contacta o administrador: <a href="mailto:bruno.domingos@rise.pt">bruno.domingos@rise.pt</a></p>
+    <? if (dados && dados.sessao) { ?>
+      <div class="session-info">Sessão ativa: <?= dados.sessao.email ?></div>
+    <? } ?>
+  </div>
+</body>
+</html>

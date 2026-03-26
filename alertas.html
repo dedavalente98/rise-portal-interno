@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8">
+<script>if(window!==window.top){window.top.location.href=window.location.href;}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RISE – Viagens de Veículos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --white:#ffffff;--off:#f5f4f2;--off2:#edecea;
+  --black:#0a0a0a;--ink:#1a1a1a;--muted:#6b6b6b;--muted2:#9e9e9e;
+  --border:#e2e0dd;--border2:#ccc9c5;
+  --red:#d92b22;--red-light:#fdf1f0;
+  --gold:#e0a500;--gold-light:#fffdf0;
+  --green:#1a7a3f;--green-light:#edfaf2;
+  --teal:#0e7c7b;--teal-light:#edfafa;
+  --fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;
+  --nav:64px;--drawer:300px;
+}
+html{scroll-behavior:smooth}
+body{background:var(--white);color:var(--ink);font-family:var(--fb);overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-track{background:var(--off2)}::-webkit-scrollbar-thumb{background:#888;border-radius:4px}::-webkit-scrollbar-thumb:hover{background:#555}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:600;height:var(--nav);display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--black);border-bottom:1px solid rgba(255,255,255,.08)}
+.nav-left{display:flex;align-items:center;gap:16px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;cursor:pointer}
+.logo-box{background:var(--black);color:var(--white);font-family:var(--fh);font-weight:800;font-size:14px;padding:5px 11px;letter-spacing:.01em}
+.logo-box .s{color:var(--red)}
+.logo-text{font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.35);letter-spacing:.14em;text-transform:uppercase}
+.nav-right{display:flex;align-items:center;gap:10px}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--black);color:var(--white);font-family:var(--fh);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid var(--red)}
+.uname{font-size:12px;color:rgba(255,255,255,.4);font-weight:400}
+.role-badge{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:20px}
+.rb-admin{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-gestor{background:rgba(217,43,34,.2);color:var(--red)}
+.rb-utilizador{background:rgba(217,43,34,.2);color:var(--red)}
+.hamburger{display:flex;flex-direction:column;justify-content:center;gap:5px;cursor:pointer;padding:8px;background:none;border:none;border-radius:6px;transition:background .2s;width:40px;height:40px}
+.hamburger:hover{background:rgba(255,255,255,.08)}
+.hamburger span{display:block;width:20px;height:1.5px;background:var(--white);border-radius:1px;transition:transform .3s ease,opacity .3s ease}
+.hamburger.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}.hamburger.open span:nth-child(2){opacity:0}.hamburger.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+
+/* DRAWER */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,0);z-index:700;pointer-events:none;transition:background .3s ease}
+.drawer-overlay.open{background:rgba(0,0,0,.25);pointer-events:all}
+.drawer{position:fixed;top:0;left:0;bottom:0;width:var(--drawer);background:var(--white);border-right:1px solid var(--border);z-index:800;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .32s cubic-bezier(.4,0,.2,1);overflow-y:auto;overflow-x:hidden}
+.drawer.open{transform:translateX(0)}
+.drawer-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:var(--nav);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;background:var(--black)}
+.drawer-close{background:none;border:none;color:rgba(255,255,255,.4);cursor:pointer;padding:6px;border-radius:6px;font-size:16px;line-height:1;transition:.2s;display:flex;align-items:center;justify-content:center;width:32px;height:32px}
+.drawer-close:hover{background:rgba(255,255,255,.08);color:var(--white)}
+.drawer-body{flex:1;padding:8px 0;display:flex;flex-direction:column}
+.drawer-section-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted2);padding:20px 20px 6px}
+.drawer-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--muted);font-size:13px;font-weight:400;text-decoration:none;cursor:pointer;transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;border-left:2px solid transparent}
+.drawer-item:hover{background:var(--off);color:var(--ink);border-left-color:var(--border2)}
+.drawer-item.active{background:var(--red-light);color:var(--red);border-left-color:var(--red);font-weight:500}
+.drawer-item .di-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;opacity:.7}
+.drawer-item.active .di-icon{opacity:1}
+.drawer-divider{height:1px;background:var(--border);margin:8px 20px}
+.drawer-footer{padding:20px;border-top:1px solid var(--border);flex-shrink:0}
+.drawer-footer-text{font-size:10px;color:var(--muted2);letter-spacing:.04em}
+
+/* PAGE HEADER */
+.page-header{margin-top:var(--nav);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding:20px 52px;background:var(--off);border-bottom:1px solid var(--border);border-top:3px solid var(--red)}
+.ph-title{font-family:var(--fh);font-size:clamp(20px,2.2vw,28px);font-weight:800;line-height:1;letter-spacing:-.04em;color:var(--black)}
+.ph-title .dot{color:var(--red)}
+.ph-sub{font-size:11px;color:var(--muted);margin-top:4px;font-weight:300}
+.ph-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;text-decoration:none;transition:.2s;letter-spacing:.02em;white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--muted);border:1px solid var(--border)}.btn-ghost:hover{color:var(--ink);background:var(--white);border-color:var(--border2)}
+
+/* SEGMENTED CONTROL */
+.seg-control{display:flex;background:var(--off2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:2px}
+.seg-btn{position:relative;display:inline-flex;align-items:center;gap:7px;padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fb);cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all .2s;white-space:nowrap;letter-spacing:.01em}
+.seg-btn.active{background:var(--white);color:var(--ink);box-shadow:0 1px 6px rgba(0,0,0,.1)}
+.seg-pill{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--off2);color:var(--muted2);transition:.2s;font-family:var(--fb)}
+.seg-btn.active .seg-pill{background:var(--red);color:#fff}
+
+/* SCREENS */
+.screens-outer{flex:1;overflow:hidden;position:relative}
+.screens-slider{display:flex;width:200%;transition:transform .3s cubic-bezier(.4,0,.2,1)}
+.screens-slider.to-analisar{transform:translateX(-50%)}
+.screen-panel{width:50%;min-height:calc(100vh - var(--nav) - 80px);padding:28px 52px 40px;flex-shrink:0}
+
+/* VIAGEM CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.viagem-card{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--red);border-radius:10px;padding:18px;display:flex;flex-direction:column;gap:0;transition:transform .18s,box-shadow .18s}
+.viagem-card:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(217,43,34,.12)}
+.vc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.vc-live{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.vc-live::before{content:'';display:block;width:7px;height:7px;border-radius:50%;background:var(--red);animation:livepulse 1.8s ease infinite}
+@keyframes livepulse{0%,100%{box-shadow:0 0 0 3px rgba(217,43,34,.15)}50%{box-shadow:0 0 0 7px rgba(217,43,34,.04)}}
+.vc-date{font-size:11px;color:var(--muted2)}
+.vc-modelo{font-family:var(--fh);font-size:17px;font-weight:800;color:var(--black);letter-spacing:-.02em;line-height:1.1}
+.vc-divider{height:0;margin-bottom:12px}
+.vc-fields{display:flex;flex-direction:column;gap:9px}
+.vc-row{display:flex;align-items:flex-start;gap:10px}
+.vc-icon{font-size:13px;flex-shrink:0;margin-top:1px;opacity:.55}
+.vc-lbl{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted2);display:block;margin-bottom:2px}
+.vc-val{font-size:13px;color:var(--ink);font-weight:500}
+.vc-gps{font-size:13px;color:var(--red);text-decoration:none;font-weight:600}
+.vc-gps:hover{text-decoration:underline;color:#c0241c}
+.vc-mat{display:inline-flex;align-items:center;gap:0;margin-top:5px;margin-bottom:8px;text-transform:uppercase;color:var(--black);background:var(--white);border:2px solid #222;border-radius:4px;overflow:hidden;font-family:'DM Sans',sans-serif;width:fit-content}
+.vc-mat-eu{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#003399;padding:3px 5px;min-width:26px;flex-shrink:0;gap:2px}
+.vc-mat-eu .country{font-size:9px;font-weight:800;color:#fff;letter-spacing:.05em;line-height:1}
+.vc-mat-text{padding:3px 8px;font-size:13px;font-weight:800;letter-spacing:.2em;color:var(--black)}
+.vc-elapsed{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;color:var(--teal);background:var(--teal-light);border:1px solid rgba(14,124,123,.2);padding:2px 7px;border-radius:20px;font-family:var(--fb);width:fit-content}
+
+/* TABLE */
+.table-container{border:1px solid var(--border);border-radius:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.alertas-table{min-width:860px}
+.alertas-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.alertas-table thead{background:var(--off)}
+.alertas-table th{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted2);text-align:left;padding:12px 16px;border-bottom:2px solid var(--border);font-family:var(--fb);white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s,background .15s}
+.alertas-table th:hover{color:var(--ink);background:var(--off2)}
+.alertas-table th .sort-icon{display:inline-block;margin-left:5px;opacity:.25;font-style:normal;font-size:9px}
+.alertas-table th.sort-asc .sort-icon,.alertas-table th.sort-desc .sort-icon{opacity:1;color:var(--red)}
+.alertas-table th.sort-asc .sort-icon::after{content:'↑'}
+.alertas-table th.sort-desc .sort-icon::after{content:'↓'}
+.alertas-table th:not(.sort-asc):not(.sort-desc) .sort-icon::after{content:'↕'}
+.alertas-table tbody tr{transition:background .12s}
+.alertas-table tbody tr:nth-child(even) td{background:var(--off)}
+.alertas-table tbody tr:hover td{background:#ece9e4 !important}
+.alertas-table td{padding:14px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;color:var(--ink);font-family:var(--fb);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.alertas-table tbody tr:last-child td{border-bottom:none}
+.td-modelo{font-family:var(--fh);font-size:13px;font-weight:700;color:var(--black)}
+.td-mat{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-top:2px}
+.km-gap{font-family:var(--fh);font-size:14px;font-weight:800;color:var(--red)}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:64px 20px;color:var(--muted2)}
+.empty-icon{font-size:36px;margin-bottom:12px;opacity:.35}
+.empty-title{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:4px;font-family:var(--fh)}
+.empty-sub{font-size:12px}
+
+/* LOADING */
+.loading-overlay{position:fixed;inset:0;background:rgba(220,218,215,.75);backdrop-filter:blur(3px);z-index:1000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s}
+.loading-overlay.open{opacity:1;pointer-events:all}
+.loading-logo-wrap{position:relative;width:180px;height:68px}
+.loading-logo-base{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;filter:brightness(0) opacity(.12)}
+.loading-logo-fill{position:absolute;inset:0;background:url('https://rise.pt/www/assets/default/images/generic/RISE_logo_white_rise.png') center/contain no-repeat;clip-path:inset(0 100% 0 0);animation:fillRight 1.6s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes fillRight{0%{clip-path:inset(0 100% 0 0)}60%{clip-path:inset(0 0% 0 0)}85%{clip-path:inset(0 0% 0 0);opacity:1}100%{clip-path:inset(0 0% 0 0);opacity:0}}
+
+
+/* PAGINAÇÃO */
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 0;flex-wrap:wrap;gap:10px;margin-top:16px}
+.pg-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:7px;font-size:12px;font-weight:600;font-family:var(--fh);cursor:pointer;border:1px solid var(--border);background:var(--white);color:var(--muted);transition:.2s}
+.pg-btn:hover{border-color:var(--border2);color:var(--ink);background:var(--off)}
+.pg-btn.active{background:var(--red);border-color:var(--red);color:#fff}
+.pg-btn:disabled{opacity:.35;pointer-events:none}
+.pg-info{font-size:11px;color:var(--muted2);font-family:var(--fb);padding:0 8px}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:10px 52px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--muted2);background:var(--white);font-family:var(--fb)}
+.foot-logo{font-family:var(--fh);font-weight:800;font-size:13px;color:var(--black)}.foot-logo .s{color:var(--red)}
+
+@media(max-width:900px){
+  .uname,.role-badge{display:none}
+  .page-header{padding:16px 24px;flex-direction:column;align-items:flex-start}
+  .screen-panel{padding:20px 24px 32px}
+  .cards-grid{grid-template-columns:1fr}
+  footer{padding:12px 24px}
+  .alertas-table th,.alertas-table td{padding:10px 10px;font-size:11px}
+.alertas-table{min-width:860px}
+}
+</style>
+</head>
+<body>
+
+<? var WU = webappUrl; ?>
+<?
+  var userRole = dados.sessao ? dados.sessao.role : 'utilizador';
+  var userName = dados.sessao ? dados.sessao.nome : 'Utilizador';
+  var _parts   = userName.trim().split(' ');
+  var userInit = _parts[0].charAt(0).toUpperCase() + (_parts.length>1 ? _parts[_parts.length-1].charAt(0).toUpperCase() : '');
+  var podeVerSheet = (userRole==='admin');
+
+  var atuais    = (dados.alertas && dados.alertas.atuais)    ? dados.alertas.atuais    : [];
+  var historico = (dados.alertas && dados.alertas.historico) ? dados.alertas.historico : [];
+
+  var percursosAnalisar = historico.filter(function(r){
+  var s = (r.Status_Percurso || r.status_percurso || r.status || '').toString().trim().toLowerCase();
+  return s === 'analisar';
+}).sort(function(a, b){
+  var ha = (a.Hora_Inicial || '').trim();
+  var hb = (b.Hora_Inicial || '').trim();
+  if (ha === hb) return 0;
+  return ha > hb ? -1 : 1;
+});
+
+  function emailParaNome(email) {
+    if (!email) return '—';
+    var local = String(email).split('@')[0];
+    return local.split('.').map(function(p){ return p.charAt(0).toUpperCase()+p.slice(1); }).join(' ');
+  }
+
+  function gpsLink(coords) {
+    if (!coords) return null;
+    var parts = String(coords).trim().split(',');
+    if (parts.length >= 2) {
+      var lat = parts[0].trim(), lon = parts[1].trim();
+      if (!isNaN(parseFloat(lat)) && !isNaN(parseFloat(lon)))
+        return 'https://www.google.com/maps?q='+lat+','+lon;
+    }
+    return null;
+  }
+?>
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+
+<div class="drawer" id="drawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span style="font-family:var(--fh);font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.12em;text-transform:uppercase">Menu</span>
+    </div>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-section-label">Principal</div>
+    <button class="drawer-item active" onclick="navTo('<?= WU ?>');closeDrawer()"><span class="di-icon">🏠</span><span class="di-label">Início</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=tickets');closeDrawer()"><span class="di-icon">🎫</span><span class="di-label">Tickets</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=calendario');closeDrawer()"><span class="di-icon">📅</span><span class="di-label">Calendário</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=comunicados');closeDrawer()"><span class="di-icon">📢</span><span class="di-label">Comunicados</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Equipa</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=fotos');closeDrawer()"><span class="di-icon">📸</span><span class="di-label">Fotos do Mês</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=rh');closeDrawer()"><span class="di-icon">👥</span><span class="di-label">RH Documentos</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=restaurantes');closeDrawer()"><span class="di-icon">🍽️</span><span class="di-label">Restaurantes</span></button>
+    <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Gestão da Frota</div>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=frota');closeDrawer()"><span class="di-icon">🔧</span><span class="di-label">Manutenção de Frota</span></button>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=alertas');closeDrawer()"><span class="di-icon">🚗</span><span class="di-label">Viagens de Veículos</span></button>
+        <div class="drawer-divider"></div>
+    <div class="drawer-section-label">Projetos</div>
+    <? if (userRole === 'admin') { ?>
+<button class="drawer-item" onclick="navTo('<?= WU ?>?page=criarProjeto');closeDrawer()"><span class="di-icon">📝</span><span>Criar Projeto</span></button>
+<? } ?>
+    <button class="drawer-item" onclick="navTo('<?= WU ?>?page=verProjetos');closeDrawer()"><span class="di-icon">🗂️</span><span class="di-label">Ver Projetos</span></button>
+  </div>
+  <div class="drawer-footer">
+    <div class="drawer-footer-text" style="font-weight:600;color:var(--ink)"><?= userName ?></div>
+    <div class="drawer-footer-text" style="margin-top:3px"><?= userRole ?> · RISE</div>
+  </div>
+</div>
+
+<nav>
+  <div class="nav-left">
+    <button class="hamburger" id="hamburger" onclick="toggleDrawer()"><span></span><span></span><span></span></button>
+    <div class="logo" onclick="navTo('<?= WU ?>')">
+      <div class="logo-box">R<span class="s">/</span>SE</div>
+      <span class="logo-text">Portal Interno</span>
+    </div>
+  </div>
+  <div class="nav-right">
+    <span class="uname"><?= userName ?></span>
+    <span class="role-badge rb-<?= userRole ?>"><?= userRole ?></span>
+    <div class="avatar"><?= userInit ?></div>
+  </div>
+</nav>
+
+<div class="page-header">
+  <div>
+    <div class="ph-title">Viagens de Veículos<span class="dot">.</span></div>
+    <div class="ph-sub">Viaturas em viagem e percursos por analisar</div>
+  </div>
+  <div class="ph-actions">
+
+<div class="seg-control">
+  <button class="seg-btn active" id="segViagens" onclick="mudarEcra('viagens')">
+    🚗 Em Viagem
+    <span class="seg-pill" id="pillViagens"><?= atuais.length ?></span>
+  </button>
+  <button class="seg-btn" id="segAnalisar" onclick="mudarEcra('analisar')">
+    ⚠️ A Analisar
+    <span class="seg-pill" id="pillAnalisar"><?= percursosAnalisar.length ?></span>
+  </button>
+</div>
+
+<? if (podeVerSheet) { ?>
+<a class="btn btn-ghost" href="https://docs.google.com/spreadsheets/d/1lkhzZfbuIR2fwifcOFb7ekbXwx4SOrWzYr_yH7bNdrA/edit?gid=399987814#gid=399987814" target="_blank">📊 Ver Sheet</a>
+<? } ?>
+
+  </div>
+</div>
+
+<!-- SLIDER DE ECRÃS -->
+<div class="screens-outer">
+  <div class="screens-slider" id="screensSlider">
+
+    <!-- ECRÃ 1: VIATURAS EM VIAGEM -->
+    <div class="screen-panel" id="panelViagens">
+      <? if (atuais.length === 0) { ?>
+      <div class="empty-state">
+        <div class="empty-icon">🚗</div>
+        <div class="empty-title">Sem viaturas em viagem</div>
+        <div class="empty-sub">De momento não há viaturas em viagem.</div>
+      </div>
+      <? } else { ?>
+      <div class="cards-grid">
+        <? for (var i = 0; i < atuais.length; i++) {
+             var a        = atuais[i];
+             var modelo   = a.Modelo       || a.modelo       || '—';
+             var matricula= a.Matricula    || a.matricula    || '—';
+             var condutor = a.Condutor     || a.condutor     || '';
+             var data     = a.Data         || a.data         || '—';
+             var localIni = a.Local_Inicial || a.local_inicial || '';
+             var condNome = emailParaNome(condutor);
+             var urlGps   = gpsLink(localIni);
+        ?>
+        <div class="viagem-card">
+          <div class="vc-top">
+  <span class="vc-live">Em Viagem</span>
+  <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+    <span class="vc-date"><?= data ?></span>
+    <span class="vc-elapsed" id="elapsed-<?= i ?>"></span>
+  </div>
+</div>
+          <div class="vc-modelo"><?= modelo ?></div>
+          <div class="vc-mat">
+ <div class="vc-mat-eu">
+  <svg width="16" height="11" viewBox="0 0 16 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(8,5.5)">
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(0) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(30) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(60) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(90) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(120) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(150) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(180) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(210) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(240) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(270) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(300) translate(0,-2.6) scale(0.38)"/>
+      <polygon points="0,-3.2 0.4,-1 1.2,-1 0.6,-0.4 0.8,0.8 0,-0.2 -0.8,0.8 -0.6,-0.4 -1.2,-1 -0.4,-1" fill="#fc0" transform="rotate(330) translate(0,-2.6) scale(0.38)"/>
+    </g>
+  </svg>
+  <span class="country">P</span>
+</div>
+  <span class="vc-mat-text"><?= matricula ?></span>
+</div>
+          <div class="vc-divider"></div>
+          <div class="vc-fields">
+            <div class="vc-row">
+              <span class="vc-icon">👤</span>
+              <div>
+                <span class="vc-lbl">Condutor</span>
+                <span class="vc-val"><?= condNome ?></span>
+              </div>
+            </div>
+            <div class="vc-row">
+              <span class="vc-icon">📍</span>
+              <div>
+                <span class="vc-lbl">Local de Início</span>
+                <? if (urlGps) { ?>
+                <a class="vc-gps" href="<?= urlGps ?>" target="_blank">Ver no mapa ↗</a>
+                <? } else if (localIni) { ?>
+                <span class="vc-val" style="font-size:11px;color:var(--muted2)"><?= localIni ?></span>
+                <? } else { ?>
+                <span class="vc-val" style="color:var(--muted2)">Sem localização</span>
+                <? } ?>
+              </div>
+            </div>
+          </div>
+        </div>
+        <? } ?>
+      </div>
+      <? } ?>
+    </div><!-- /panelViagens -->
+
+    <!-- ECRÃ 2: PERCURSOS A ANALISAR -->
+<div class="screen-panel" id="panelAnalisar">
+  <? if (percursosAnalisar.length === 0) { ?>
+  <div class="empty-state">
+    <div class="empty-icon">✅</div>
+    <div class="empty-title">Tudo conforme</div>
+    <div class="empty-sub">Não existem percursos a necessitar de análise.</div>
+  </div>
+  <? } else { ?>
+  <div class="table-container">
+  <table class="alertas-table">
+    <thead>
+      <tr>
+        <th style="width:180px" onclick="sortAnalisar(0,this)"><span>Veículo</span><i class="sort-icon"></i></th>
+        <th style="width:160px" onclick="sortAnalisar(1,this)"><span>Hora Fim (Anterior)</span><i class="sort-icon"></i></th>
+        <th style="width:160px" onclick="sortAnalisar(2,this)"><span>Hora Início (Atual)</span><i class="sort-icon"></i></th>
+        <th style="width:120px" onclick="sortAnalisar(3,this)"><span>Km Fim (Anterior)</span><i class="sort-icon"></i></th>
+        <th style="width:120px" onclick="sortAnalisar(4,this)"><span>Km Início (Atual)</span><i class="sort-icon"></i></th>
+        <th style="width:120px" onclick="sortAnalisar(5,this)"><span>Gap de Kms</span><i class="sort-icon"></i></th>
+      </tr>
+    </thead>
+    <tbody id="tbodyAnalisar"></tbody>
+  </table>
+</div>
+<div class="pagination" id="paginacao"></div>
+<? } ?>
+</div>
+
+  </div><!-- /screensSlider -->
+</div><!-- /screens-outer -->
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-logo-wrap">
+    <div class="loading-logo-base"></div>
+    <div class="loading-logo-fill"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-logo">R<span class="s">/</span>SE · Portal Interno</div>
+  <div>© 2026 RISE · a Europalco company</div>
+  <div>Departamento de Planeamento · <?= dados.dataHoje ?></div>
+</footer>
+
+<script>
+/* TRANSIÇÃO SLIDER */
+var ecraAtivo = 'viagens';
+/* DADOS PARA PAGINAÇÃO */
+var todosPercursos = [
+  <? for (var j = 0; j < percursosAnalisar.length; j++) {
+       var p          = percursosAnalisar[j];
+       var pMod       = p.Modelo    || '—';
+       var pMat       = p.Matricula || '—';
+       var pKm        = p["KM's_entre_Percursos"] || p["KMs_entre_Percursos"] || '—';
+       var pHIni      = p.Hora_Inicial             || '—';
+       var pHFimAnt   = p.comp_hora_final_anterior  || '—';
+       var pKmFimAnt  = p.comp_kms_final_anterior   || '—';
+       var pKmIniAtual= p.comp_kms_ini_atual || p.Kms_Inicial || '—';
+  ?>
+  {mod:"<?= pMod ?>",mat:"<?= pMat ?>",km:"<?= pKm ?>",hIni:"<?= pHIni ?>",hFimAnt:"<?= pHFimAnt ?>",kmFimAnt:"<?= pKmFimAnt ?>",kmIniAtual:"<?= pKmIniAtual ?>"},
+  <? } ?>
+];
+
+var pgAtual   = 1;
+var pgTamanho = 10;
+var dadosOrdenados = todosPercursos.slice();
+
+function renderTabela() {
+  var inicio = (pgAtual - 1) * pgTamanho;
+  var fim    = inicio + pgTamanho;
+  var pagina = dadosOrdenados.slice(inicio, fim);
+  var tbody  = document.getElementById('tbodyAnalisar');
+  tbody.innerHTML = pagina.map(function(p, idx) {
+    var rowClass = ((inicio + idx) % 2 === 1) ? 'style=""' : '';
+    return '<tr data-sort0="'+p.mod+'" data-sort1="'+p.hFimAnt+'" data-sort2="'+p.hIni+'" data-sort3="'+p.kmFimAnt+'" data-sort4="'+p.kmIniAtual+'" data-sort5="'+p.km+'">'
+      +'<td><div class="td-modelo">'+p.mod+'</div><div class="td-mat">'+p.mat+'</div></td>'
+      +'<td style="font-size:12px;color:var(--muted2)">'+p.hFimAnt+'</td>'
+      +'<td style="font-size:12px;color:var(--muted2)">'+p.hIni+'</td>'
+      +'<td style="font-size:12px;color:var(--muted2)">'+p.kmFimAnt+'</td>'
+      +'<td style="font-size:12px;color:var(--muted2)">'+p.kmIniAtual+'</td>'
+      +'<td style="font-family:var(--fh);font-size:13px;font-weight:700;color:var(--red)">'+p.km+' km</td>'
+      +'</tr>';
+  }).join('');
+  renderPaginacao();
+}
+
+function renderPaginacao() {
+  var total  = dadosOrdenados.length;
+  var nPags  = Math.ceil(total / pgTamanho);
+  var pg     = document.getElementById('paginacao');
+  if (nPags <= 1) { pg.innerHTML = ''; return; }
+
+  var html = '<span style="font-size:12px;color:var(--muted);font-family:var(--fb);margin-right:8px">A mostrar <strong style="color:var(--ink)">' + ((pgAtual-1)*pgTamanho+1) + '–' + Math.min(pgAtual*pgTamanho,total) + '</strong> de <strong style="color:var(--ink)">' + total + '</strong> registos</span>';
+  html += '<div style="display:flex;gap:4px;align-items:center">';
+  html += '<button class="pg-btn" onclick="irPagina('+(pgAtual-1)+')" '+(pgAtual===1?'disabled':'')+'>‹</button>';
+
+  buildPageRange(pgAtual, nPags).forEach(function(p){
+    if (p === '…') html += '<span style="display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;font-size:12px;color:var(--muted2);font-family:var(--fb)">…</span>';
+    else html += '<button class="pg-btn'+(p===pgAtual?' active':'')+'" onclick="irPagina('+p+')">'+p+'</button>';
+  });
+
+  html += '<button class="pg-btn" onclick="irPagina('+(pgAtual+1)+')" '+(pgAtual===nPags?'disabled':'')+'>›</button>';
+  html += '</div>';
+  pg.innerHTML = html;
+}
+
+function buildPageRange(current, total) {
+  if (total <= 7) { var a=[]; for(var i=1;i<=total;i++) a.push(i); return a; }
+  var pages = [1];
+  if (current > 3) pages.push('…');
+  for (var p=Math.max(2,current-1); p<=Math.min(total-1,current+1); p++) pages.push(p);
+  if (current < total-2) pages.push('…');
+  pages.push(total);
+  return pages;
+}
+
+function irPagina(n) {
+  var nPags = Math.ceil(dadosOrdenados.length / pgTamanho);
+  pgAtual = Math.max(1, Math.min(n, nPags));
+  renderTabela();
+}
+
+renderTabela();
+
+function mudarEcra(ecra) {
+  if (ecra === ecraAtivo) return;
+  var slider = document.getElementById('screensSlider');
+  if (ecra === 'analisar') {
+    slider.classList.add('to-analisar');
+  } else {
+    slider.classList.remove('to-analisar');
+  }
+  document.getElementById('seg' + cap(ecraAtivo)).classList.remove('active');
+  document.getElementById('seg' + cap(ecra)).classList.add('active');
+  ecraAtivo = ecra;
+}
+
+function cap(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+/* SORT TABELA */
+var sortColA = -1, sortDirA = 1;
+function sortAnalisar(col, th) {
+  sortDirA = (sortColA === col) ? sortDirA * -1 : 1;
+  sortColA = col;
+  document.querySelectorAll('.alertas-table th').forEach(function(h){ h.classList.remove('sort-asc','sort-desc'); });
+  th.classList.add(sortDirA === 1 ? 'sort-asc' : 'sort-desc');
+  var keys = ['mod','hFimAnt','hIni','kmFimAnt','kmIniAtual','km'];
+  var key  = keys[col];
+  dadosOrdenados.sort(function(a, b) {
+    var av = (a[key]||'').toLowerCase();
+    var bv = (b[key]||'').toLowerCase();
+    var an = parseFloat(av.replace(',','.')), bn = parseFloat(bv.replace(',','.'));
+    if (!isNaN(an) && !isNaN(bn)) return (an - bn) * sortDirA;
+    return (av < bv ? -1 : av > bv ? 1 : 0) * sortDirA;
+  });
+  pgAtual = 1;
+  renderTabela();
+}
+
+function atualizarDados() {
+  navTo('<?= WU ?>?page=alertas');
+}
+
+function calcElapsed(dataStr) {
+  if (!dataStr || dataStr === '—') return null;
+  var m = dataStr.match(/^(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})$/);
+  if (!m) return null;
+  var inicio = new Date(m[3], m[2]-1, m[1], m[4], m[5]);
+  var diff = Math.floor((Date.now() - inicio.getTime()) / 60000); // minutos
+  if (diff < 0) return null;
+  if (diff < 60) return diff + ' min';
+  var h = Math.floor(diff / 60), min = diff % 60;
+  return h + 'h ' + (min > 0 ? min + 'min' : '');
+}
+
+/* NAV */
+function navTo(url){ 
+  document.getElementById('loadingOverlay').classList.add('open'); 
+  try{window.top.location.href=url;}catch(e){window.location.href=url;}
+}
+
+var drawerOpen=false;
+function toggleDrawer(){ drawerOpen?closeDrawer():openDrawer(); }
+function openDrawer(){ drawerOpen=true; document.getElementById('drawer').classList.add('open'); document.getElementById('drawerOverlay').classList.add('open'); document.getElementById('hamburger').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeDrawer(){ drawerOpen=false; document.getElementById('drawer').classList.remove('open'); document.getElementById('drawerOverlay').classList.remove('open'); document.getElementById('hamburger').classList.remove('open'); document.body.style.overflow=''; }
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeDrawer(); });
+
+// ELAPSED
+(function(){
+  var cards = <?!= JSON.stringify(atuais.map(function(a,i){ return {i:i, data: a.Data||a.data||''}; })) ?>;
+  cards.forEach(function(c){
+    var el = document.getElementById('elapsed-'+c.i);
+    if (!el) return;
+    var t = calcElapsed(c.data);
+    if (t) { el.textContent = '⏱ ' + t; }
+    else { el.style.display = 'none'; }
+  });
+})();
+</script>
+</body>
+</html>
